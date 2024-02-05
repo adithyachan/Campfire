@@ -19,7 +19,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: 'black',
       }}>
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name='index'
         options={{
           title: 'Tab One',
@@ -46,7 +46,36 @@ export default function TabLayout() {
           title: "Tab Two",
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         }}
+      /> */}
+      <Tabs.Screen
+        name="groups"
+        options={{
+          title: "Groups",
+          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+        }}
       />
+      <Tabs.Screen
+        name="home-feed"
+        options={{
+          title: "Home Feed",
+          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="explore-feed"
+        options={{
+          title: "Explore Feed",
+          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: "Account",
+          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+        }}
+      />
+
     </Tabs>
   );
 }
