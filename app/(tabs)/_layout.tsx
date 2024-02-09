@@ -3,7 +3,6 @@ import { Link, Tabs } from "expo-router";
 
 import { Pressable, StyleSheet } from "react-native";
 
-
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
@@ -52,6 +51,9 @@ export default function TabLayout() {
         options={{
           title: "Groups",
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          headerRight: () => (
+            <></>
+          ),
         }}
       />
       <Tabs.Screen
