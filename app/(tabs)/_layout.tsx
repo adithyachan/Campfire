@@ -2,18 +2,29 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link, Tabs } from "expo-router";
 
 import { Pressable, StyleSheet } from "react-native";
+import { Button, ButtonIcon, AddIcon } from "@gluestack-ui/themed";
+import { supabase } from "~/utils/supabase";
 
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
 }) {
-  
   return <FontAwesome size={28} style={styles.tabBarIcon} {...props} />;
 }
 
-export default function TabLayout() {
-  
+async function createGroup() {
+  console.log("Creating Group")
+  const { data, error } = await supabase
+  .from('groups')
+  .insert([
+    { bio: 'This is a test group creation' },
+  ])
+  .select()
+  console.log(data, error)
+}
+
+export default function TabLayout() {  
   return (
     <Tabs
       screenOptions={{
@@ -52,6 +63,12 @@ export default function TabLayout() {
         options={{
           title: "Groups",
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          headerRight: () => (
+          <Button borderRadius='$full' size='lg' p='$3.5' bgColor='$warning500' 
+          onPress={() => createGroup()}>
+            <ButtonIcon as={AddIcon}/>
+          </Button>  
+          ),
         }}
       />
       <Tabs.Screen
