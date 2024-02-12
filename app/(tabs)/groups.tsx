@@ -1,21 +1,36 @@
 
-import { Text, View } from "react-native";
-
-
+import { View } from "react-native";
 import EditScreenInfo from "../../components/edit-screen-info";
+import {Modal, Center, ButtonText, 
+	ModalBackdrop, ModalContent, ModalHeader, Heading, ModalCloseButton, Icon, CloseIcon,
+	ModalBody, ModalFooter, Text, Button} from "@gluestack-ui/themed";
+import { useState, useEffect } from "react";
+import { useNavigation, useNavigationContainerRef } from "expo-router";
+import { useNavigatorContext } from "expo-router/build/views/Navigator";
+import { supabase } from "~/utils/supabase";
+
+async function createGroup() {
+	console.log("Creating Group")
+	const { data, error } = await supabase
+	.from('groups')
+	.insert([
+	  { bio: 'This is a test group creation' },
+	])
+	.select()
+	console.log(data, error)
+  }
 
 export default function GroupsScreen() {
-    
+
         return (
 			<View className={styles.container}>
-				<Text className={styles.title}>You do not have any groups! Create one and invite some friends!</Text>
+				<Text className={styles.title}></Text>
 				<View className={styles.separator} />
 				<EditScreenInfo path="app/(tabs)/index.tsx" />
 			</View>
 		);
     
 }
-
 
     const styles = {
 		container: `items-center flex-1 justify-center`,
