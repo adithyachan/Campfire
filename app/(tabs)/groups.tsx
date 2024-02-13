@@ -1,13 +1,9 @@
 
 import { View } from "react-native";
 import EditScreenInfo from "../../components/edit-screen-info";
-import {Modal, Center, ButtonText, 
-	ModalBackdrop, ModalContent, ModalHeader, Heading, ModalCloseButton, Icon, CloseIcon,
-	ModalBody, ModalFooter, Text, Button} from "@gluestack-ui/themed";
-import { useState, useEffect } from "react";
-import { useNavigation, useNavigationContainerRef } from "expo-router";
-import { useNavigatorContext } from "expo-router/build/views/Navigator";
+import {ScrollView, VStack, Center,  Heading, Text, Button, ButtonIcon, AddIcon} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
+import GroupCard from "~/components/groupcard";
 
 async function createGroup() {
 	console.log("Creating Group")
@@ -24,9 +20,20 @@ export default function GroupsScreen() {
 
         return (
 			<View className={styles.container}>
-				<Text className={styles.title}></Text>
-				<View className={styles.separator} />
-				<EditScreenInfo path="app/(tabs)/index.tsx" />
+			<ScrollView w="$full" h="$full">
+				<Center mt="$3" mb="$4" >
+					<VStack flex={1} w="$full" h="$full" space="md" p="$2">
+						<GroupCard/>
+						<GroupCard/>
+						<GroupCard/>
+						<Button > 
+							<ButtonIcon as={AddIcon}>
+
+							</ButtonIcon>
+						</Button>
+					</VStack>
+				</Center>
+			</ScrollView>
 			</View>
 		);
     
