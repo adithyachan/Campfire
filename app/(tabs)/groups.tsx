@@ -1,9 +1,13 @@
 
 import { View } from "react-native";
 import EditScreenInfo from "../../components/edit-screen-info";
-import {ScrollView, VStack, Center,  Heading, Text, Button, ButtonIcon, AddIcon} from "@gluestack-ui/themed";
+import {ScrollView, VStack, Center,  Heading, Textarea, TextareaInput, Button, ButtonIcon, AddIcon, Modal,
+	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
+	Icon, ModalBody, CloseIcon,
+	FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, Input, InputField} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
+import { useState } from "react";
 
 async function createGroup() {
 	console.log("Creating Group")
@@ -17,7 +21,8 @@ async function createGroup() {
   }
 
 export default function GroupsScreen() {
-
+		const [showModal, setShowModal] = useState(false)
+		console.log(showModal)
         return (
 			<View className={styles.container}>
 			<ScrollView w="$full" h="$full">
@@ -26,7 +31,7 @@ export default function GroupsScreen() {
 						<GroupCard/>
 						<GroupCard/>
 						<GroupCard/>
-						<Button > 
+						<Button onPress={() => setShowModal(true)}> 
 							<ButtonIcon as={AddIcon}>
 
 							</ButtonIcon>
@@ -34,6 +39,84 @@ export default function GroupsScreen() {
 					</VStack>
 				</Center>
 			</ScrollView>
+			<Modal
+						isOpen={showModal}
+						onClose={() => {
+						setShowModal(false)
+						}}
+					>
+						<ModalBackdrop />
+						<ModalContent>
+						<ModalHeader>
+							<Heading size="lg">Create a new group</Heading>
+							<ModalCloseButton>
+							<Icon as={CloseIcon} />
+							</ModalCloseButton>
+						</ModalHeader>
+						<ModalBody>
+							<VStack>
+							<FormControl size="md" isDisabled={false} isInvalid={false} isReadOnly={false} isRequired={false} >
+								<FormControlLabel mb='$1'>
+								<FormControlLabelText>Group Name</FormControlLabelText>
+								</FormControlLabel>
+								<Input>
+								<InputField
+									type="password"
+									placeholder="password"
+								/>
+								</Input>
+								<FormControlHelper>
+								<FormControlHelperText>
+									Must be at least 6 characters.
+								</FormControlHelperText>
+								</FormControlHelper>
+								<FormControlError>
+								<FormControlErrorIcon
+									as={AlertCircleIcon}
+								/>
+								<FormControlErrorText>
+									At least 6 characters are required.
+								</FormControlErrorText>
+								</FormControlError>
+							</FormControl>
+							<FormControl>
+							<FormControlLabel>
+								<FormControlLabelText>Group Bio</FormControlLabelText>
+							</FormControlLabel>
+							<Textarea>
+								<TextareaInput />
+							</Textarea>
+							<FormControlHelper>
+								<FormControlHelperText>Type your comment above</FormControlHelperText>
+							</FormControlHelper>
+							</FormControl>
+							</VStack>
+						</ModalBody>
+						<ModalFooter>
+							<Button
+							variant="outline"
+							size="sm"
+							action="secondary"
+							mr="$3"
+							onPress={() => {
+								setShowModal(false)
+							}}
+							>
+							<ButtonText>Cancel</ButtonText>
+							</Button>
+							<Button
+							size="sm"
+							action="positive"
+							borderWidth="$0"
+							onPress={() => {
+								setShowModal(false)
+							}}
+							>
+							<ButtonText>Create New Group</ButtonText>
+							</Button>
+						</ModalFooter>
+						</ModalContent>
+					</Modal>
 			</View>
 		);
     
