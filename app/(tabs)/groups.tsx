@@ -9,19 +9,29 @@ import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState } from "react";
 
-async function createGroup() {
-	console.log("Creating Group")
-	const { data, error } = await supabase
-	.from('groups')
-	.insert([
-	  { bio: 'This is a test group creation' },
-	])
-	.select()
-	console.log(data, error)
-  }
+
 
 export default function GroupsScreen() {
 		const [showModal, setShowModal] = useState(false)
+		const [groupName, setGroupName] = useState("")
+		const [groupBio, setGroupBio] = useState("")
+
+		async function createGroup() {
+			console.log("Creating Group")
+			/*
+			console.log("Creating Group")
+			const { data, error } = await supabase
+			.from('groups')
+			.insert([
+			  { bio: 'This is a test group creation' },
+			])
+			.select()
+			console.log(data, error)
+			*/
+			setGroupName("")
+			setGroupBio("")
+		}
+
 		console.log(showModal)
         return (
 			<View className={styles.container}>
@@ -31,14 +41,16 @@ export default function GroupsScreen() {
 						<GroupCard/>
 						<GroupCard/>
 						<GroupCard/>
-						<Button onPress={() => setShowModal(true)}> 
+
+					</VStack>
+
+				</Center>
+			</ScrollView>
+			<Button onPress={() => setShowModal(true)}> 
 							<ButtonIcon as={AddIcon}>
 
 							</ButtonIcon>
-						</Button>
-					</VStack>
-				</Center>
-			</ScrollView>
+			</Button>
 			<Modal
 						isOpen={showModal}
 						onClose={() => {
@@ -61,8 +73,10 @@ export default function GroupsScreen() {
 								</FormControlLabel>
 								<Input>
 								<InputField
-									type="password"
-									placeholder="password"
+									type="text"
+									placeholder="Campfire"
+									value={groupName}
+									onChangeText={text => setGroupName(text)}
 								/>
 								</Input>
 								<FormControlHelper>
@@ -84,10 +98,12 @@ export default function GroupsScreen() {
 								<FormControlLabelText>Group Bio</FormControlLabelText>
 							</FormControlLabel>
 							<Textarea>
-								<TextareaInput />
+								<TextareaInput 								
+									value={groupBio}
+									onChangeText={text => setGroupBio(text)}/>
 							</Textarea>
 							<FormControlHelper>
-								<FormControlHelperText>Type your comment above</FormControlHelperText>
+								<FormControlHelperText>Type your bio above. Must be under 300 characters.</FormControlHelperText>
 							</FormControlHelper>
 							</FormControl>
 							</VStack>
@@ -109,7 +125,7 @@ export default function GroupsScreen() {
 							action="positive"
 							borderWidth="$0"
 							onPress={() => {
-								setShowModal(false)
+								createGroup()
 							}}
 							>
 							<ButtonText>Create New Group</ButtonText>
