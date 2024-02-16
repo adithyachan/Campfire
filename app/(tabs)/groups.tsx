@@ -8,6 +8,7 @@ import {ScrollView, VStack, Center,  Heading, Textarea, TextareaInput, Button, B
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState } from "react";
+import { router } from "expo-router";
 
 
 
@@ -15,6 +16,10 @@ export default function GroupsScreen() {
 		const [showModal, setShowModal] = useState(false)
 		const [groupName, setGroupName] = useState("")
 		const [groupBio, setGroupBio] = useState("")
+		
+		const name = "Group 1"
+		const bio = "This is a test group"
+
 
 		async function createGroup() {
 			console.log("Creating Group")
@@ -28,6 +33,10 @@ export default function GroupsScreen() {
 			.select()
 			console.log(data, error)
 			*/
+			router.push({
+				pathname: "/group/[id]",
+				params: {id: groupName, bio: groupBio}
+			})
 			setGroupName("")
 			setGroupBio("")
 		}
@@ -38,10 +47,7 @@ export default function GroupsScreen() {
 			<ScrollView w="$full" h="$full">
 				<Center mt="$3" mb="$4" >
 					<VStack flex={1} w="$full" h="$full" space="md" p="$2">
-						<GroupCard/>
-						<GroupCard/>
-						<GroupCard/>
-
+						<GroupCard name={name} bio={bio}/>
 					</VStack>
 
 				</Center>
