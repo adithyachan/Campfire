@@ -1,10 +1,9 @@
 
 import { View } from "react-native";
-import EditScreenInfo from "../../components/edit-screen-info";
 import {ScrollView, VStack, Center,  Heading, Textarea, TextareaInput, Button, ButtonIcon, AddIcon, Modal,
 	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
-	Icon, ModalBody, CloseIcon,
-	FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, Input, InputField} from "@gluestack-ui/themed";
+	Icon, ModalBody, CloseIcon, FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, 
+	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, Input, InputField, HStack, Text} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState } from "react";
@@ -13,9 +12,12 @@ import { router } from "expo-router";
 
 
 export default function GroupsScreen() {
-		const [showModal, setShowModal] = useState(false)
+		const [showCreate, setShowCreate] = useState(false)
+		const [showJoin, setShowJoin] = useState(false)
 		const [groupName, setGroupName] = useState("")
 		const [groupBio, setGroupBio] = useState("")
+		const [groupCode, setGroupCode] = useState("")
+
 		
 		const name = "Group 1"
 		const bio = "This is a test group"
@@ -41,7 +43,27 @@ export default function GroupsScreen() {
 			setGroupBio("")
 		}
 
-		console.log(showModal)
+		async function joinGroup() {
+			console.log("Creating Group")
+			/*
+			console.log("Creating Group")
+			const { data, error } = await supabase
+			.from('groups')
+			.insert([
+			  { bio: 'This is a test group creation' },
+			])
+			.select()
+			console.log(data, error)
+			*/
+			router.push({
+				pathname: "/group/[id]",
+				params: {id: groupName, bio: groupBio}
+			})
+			setGroupName("")
+			setGroupBio("")
+		}
+
+		console.log(showCreate)
         return (
 			<View className={styles.container}>
 			<ScrollView w="$full" h="$full">
@@ -52,16 +74,24 @@ export default function GroupsScreen() {
 
 				</Center>
 			</ScrollView>
-			<Button onPress={() => setShowModal(true)}> 
-							<ButtonIcon as={AddIcon}>
+			<HStack>
+			<Button onPress={() => setShowCreate(true)}> 
+				<ButtonIcon as={AddIcon}>
 
-							</ButtonIcon>
+				</ButtonIcon>
 			</Button>
+			<Button onPress={() => setShowJoin(true)}> 
+				<ButtonText color="$textLight0">
+					Join
+				</ButtonText>
+			</Button>
+			</HStack>
+
 			<Modal
-						isOpen={showModal}
-						onClose={() => {
-						setShowModal(false)
-						}}
+				isOpen={showCreate}
+				onClose={() => {
+				setShowCreate(false)
+				}}
 					>
 						<ModalBackdrop />
 						<ModalContent>
@@ -121,7 +151,7 @@ export default function GroupsScreen() {
 							action="secondary"
 							mr="$3"
 							onPress={() => {
-								setShowModal(false)
+								setShowCreate(false)
 							}}
 							>
 							<ButtonText>Cancel</ButtonText>
@@ -134,11 +164,71 @@ export default function GroupsScreen() {
 								createGroup()
 							}}
 							>
-							<ButtonText>Create New Group</ButtonText>
+							<ButtonText>Create</ButtonText>
 							</Button>
 						</ModalFooter>
 						</ModalContent>
-					</Modal>
+				</Modal>
+				
+				 
+				<Modal
+				isOpen={showJoin}
+				onClose={() => {
+				setShowJoin(false)
+				}}
+					>
+						<ModalBackdrop />
+						<ModalContent>
+						<ModalHeader>
+							<Heading size="lg">Join a group</Heading>
+							<ModalCloseButton>
+							<Icon as={CloseIcon} />
+							</ModalCloseButton>
+						</ModalHeader>
+						<ModalBody>
+							<VStack>
+							<FormControl size="md" isDisabled={false} isInvalid={false} isReadOnly={false} isRequired={false} >
+								<FormControlLabel mb='$1'>
+								<FormControlLabelText>Group Code</FormControlLabelText>
+								</FormControlLabel>
+								<Input>
+								<InputField
+									type="text"
+									placeholder="Campfire"
+									value={groupCode}
+									onChangeText={text => setGroupCode(text)}
+								/>
+								</Input>
+							</FormControl>
+							</VStack>
+						</ModalBody>
+						<ModalFooter>
+							<Button
+							variant="outline"
+							size="sm"
+							action="secondary"
+							mr="$3"
+							onPress={() => {
+								setShowJoin(false)
+							}}
+							>
+							<ButtonText>Cancel</ButtonText>
+							</Button>
+
+							<Button
+							size="sm"
+							action="positive"
+							borderWidth="$0"
+							onPress={() => {
+								joinGroup()
+							}}
+							>
+							<ButtonText >Join</ButtonText>
+							</Button>
+						</ModalFooter>
+						</ModalContent>
+				</Modal>
+
 			</View>
 		);
     

@@ -1,26 +1,37 @@
 
-import { Text, View } from "react-native";
-
-import { useLocalSearchParams } from "expo-router";
+import { View } from "react-native";
+import { Button, ButtonIcon, ShareIcon, Text } from "@gluestack-ui/themed";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useEffect } from "react";
 
 export default function GroupScreen() {
+    const navigation = useNavigation();
+    const items = useLocalSearchParams()
+    console.log(items)
 
-        
+    useEffect(() => {
+        navigation.setOptions({ 
+            headerTitle: items.id,
+            headerRight: () => (
+                <Button variant="link">
+                    <ButtonIcon as={ShareIcon} />
+                </Button>
+            )
+        });
+    },[navigation, items])
 
-        const items = useLocalSearchParams()
-        console.log(items)
-        return ( 
-			<View className={styles.container}>
-                <Text>
-                    Group Name: {items.id}
-                </Text>
-                <Text>
-                    Group Bio: {items.bio}
-                </Text>
-			</View>
-		);
-    
+    return ( 
+        <View className={styles.container}>
+            <Text>
+                Group Name: {items.id}
+            </Text>
+            <Text>
+                Group Bio: {items.bio}
+            </Text>
+        </View>
+    );
 }
+
 
 const styles = {
     container: `items-center flex-1 justify-center`,
