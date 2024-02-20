@@ -4,7 +4,7 @@ import { Modal, Button, ButtonIcon, ButtonText,
     CloseIcon, FormControl, FormControlLabel, FormControlLabelText, 
     Heading, Icon, Input, InputField, ModalBackdrop, ModalBody, 
     ModalCloseButton, ModalContent, ModalFooter, ModalHeader, 
-    ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot } from "@gluestack-ui/themed";
+    ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, Image, Box, ScrollView } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 
@@ -47,14 +47,19 @@ export default function GroupScreen() {
 
     return ( 
         <View className={styles.container}>
-            <Text>
-                Group Name: {items.id}
-            </Text>
-            <Text>
-                Group Bio: {items.bio}
-            </Text>
+          <ScrollView>
+          <Box width={"$full"} height={"$1/6"}>
+            
+          </Box>
 
-            <Modal
+              <Text>
+                  Group Name: {items.id}
+              </Text>
+              <Text>
+                  Group Bio: {items.bio}
+              </Text>
+          </ScrollView>
+        <Modal
 				isOpen={showShare}
 				onClose={() => {
 				setShowShare(false)
