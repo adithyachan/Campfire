@@ -72,7 +72,7 @@ export default function TabLayout() {
         name="account"
         options={{
           title: "Account",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
 

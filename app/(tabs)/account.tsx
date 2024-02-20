@@ -63,6 +63,8 @@ export default function AccountScreen() {
 
   return (
     <View style={styles.container}>
+	  <Text marginBottom={20} bold={true} size={'5xl'}>{`${profile.firstName} ${profile.lastName}`}</Text>
+	  
       <Avatar bgColor='$amber600' size="2xl" borderRadius="$full">
         {profile.avatarUrl ? (
           <AvatarImage source={{ uri: profile.avatarUrl }} />
@@ -138,5 +140,5 @@ const styles = StyleSheet.create({
     },
     button: {
         marginVertical: 5,
-    },
+    }
 });
