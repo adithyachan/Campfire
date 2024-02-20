@@ -1,24 +1,84 @@
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import {
+  Button,
+  ButtonText,
+  Divider,
+  Text,
+  Avatar,
+  AvatarFallbackText,
+} from '@gluestack-ui/themed';
 
-import { Text, View } from "react-native";
-
-
-import EditScreenInfo from "../../components/edit-screen-info";
+// FROM PARAM
+// TODO: 
+// have the avatar be loaded as a letter fallback text if there is not a profile photo set
+// implement table backend for all information shown on screen
+// do change psswd button
+// do change bio button
+// do change avatar photo button (S3 Bucket)
 
 export default function AccountScreen() {
-    
-        return (
-			<View className={styles.container}>
-				<Text className={styles.title}>AccountScreen</Text>
-				<View className={styles.separator} />
-				<EditScreenInfo path="app/(tabs)/index.tsx" />
-			</View>
-		);
-    
+    return (
+        <View style={styles.container}>
+            <Avatar bgColor='$amber600' size="2xl" borderRadius="$full" >
+                <AvatarFallbackText>Sandeep Srivastava</AvatarFallbackText>
+            </Avatar>
+            
+            <Text style={styles.bio}>
+                This is an example bio. Here you can add your personal info or description.
+            </Text>
+            
+            <Divider style={styles.divider} />
+            
+            <Button
+              size="md"
+              variant="solid"
+              action="primary"
+              onPress={() => console.log('Reset Password')}
+              style={styles.button}
+            >
+              <ButtonText>Reset Password</ButtonText>
+            </Button>
+            
+            <Button
+              size="md"
+              variant="solid"
+              action="secondary"
+              onPress={() => console.log('Change Bio')}
+              style={styles.button}
+            >
+              <ButtonText>Change Bio</ButtonText>
+            </Button>
+            
+            <Button
+              size="md"
+              variant="solid"
+              onPress={() => console.log('Change Profile Photo')}
+              style={styles.button}
+            >
+              <ButtonText>Change Profile Photo</ButtonText>
+            </Button>
+        </View>
+    );
 }
 
-
-    const styles = {
-		container: `items-center flex-1 justify-center`,
-		separator: `h-[1px] my-7 w-4/5 bg-gray-200`,
-		title: `text-xl font-bold`
-	};
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    bio: {
+        textAlign: 'center',
+        marginBottom: 20,
+        marginTop: 20, // Added spacing between the avatar and the bio
+    },
+    divider: {
+        width: '100%',
+        marginBottom: 20,
+    },
+    button: {
+        marginVertical: 5,
+    },
+});
