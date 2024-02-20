@@ -58,6 +58,16 @@ export default function AccountScreen() {
             >
               <ButtonText>Change Profile Photo</ButtonText>
             </Button>
+
+			<Button
+              size="md"
+              variant="solid"
+			  action='negative'
+              onPress={() => console.log('Delete Account')}
+              style={styles.button}
+            >
+              <ButtonText>Delete Account</ButtonText>
+            </Button>
         </View>
     );
 }
