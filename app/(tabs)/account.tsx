@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import {
   Button,
   ButtonText,
@@ -7,26 +7,74 @@ import {
   Text,
   Avatar,
   AvatarFallbackText,
+  AvatarImage,
 } from '@gluestack-ui/themed';
+import { supabase } from '../../utils/supabase'; 
 
-// FROM PARAM
-// TODO: 
-// have the avatar be loaded as a letter fallback text if there is not a profile photo set
-// implement table backend for all information shown on screen
-// do change psswd button
-// do change bio button
-// do change avatar photo button (S3 Bucket)
+type Profile = {
+  bio: string;
+  avatarUrl: string | null;
+  firstName: string;
+  lastName: string;
+};
 
 export default function AccountScreen() {
-    return (
-        <View style={styles.container}>
-            <Avatar bgColor='$amber600' size="2xl" borderRadius="$full" >
-                <AvatarFallbackText>Sandeep Srivastava</AvatarFallbackText>
-            </Avatar>
-            
-            <Text style={styles.bio}>
-                This is an example bio. Here you can add your personal info or description.
-            </Text>
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const userId = "77bfe68f-309d-4b82-b610-4d98c5627632"; // TODO: ALBERT CAN YOU FETCH CURRENT USER ID HERE
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        let { data, error } = await supabase
+          .from('profiles')
+          .select('bio, avatar_url, first_name, last_name')
+          .eq('user_id', userId)
+          .single();
+
+        if (error) throw error;
+
+        setProfile({
+          bio: data?.bio ?? "Hi! I'm new to Campfire!",
+          avatarUrl: data?.avatar_url,
+          firstName: data?.first_name ?? '',
+          lastName: data?.last_name ?? '',
+        });
+      } catch (error: any) {
+        console.error('Error fetching profile:', error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchProfile();
+    }
+  }, [userId]);
+
+  if (loading) {
+    return <ActivityIndicator />;
+  }
+
+  if (!profile) {
+    return null;
+  }
+
+  return (
+    <View style={styles.container}>
+      <Avatar bgColor='$amber600' size="2xl" borderRadius="$full">
+        {profile.avatarUrl ? (
+          <AvatarImage source={{ uri: profile.avatarUrl }} />
+        ) : (
+          <AvatarFallbackText>{`${profile.firstName} ${profile.lastName}`}</AvatarFallbackText>
+        )}
+      </Avatar>
+
+      <Text style={styles.bio}>
+        {profile.bio}
+      </Text>
+
             
             <Divider style={styles.divider} />
             
@@ -82,7 +130,7 @@ const styles = StyleSheet.create({
     bio: {
         textAlign: 'center',
         marginBottom: 20,
-        marginTop: 20, // Added spacing between the avatar and the bio
+        marginTop: 20,
     },
     divider: {
         width: '100%',
