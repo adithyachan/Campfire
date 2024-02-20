@@ -27,6 +27,26 @@ const Auth = () => {
     }
   };
 
+  const handleLogin = async () => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        console.log('User signed up successfully:');
+        console.log(data);
+        // Handle successful registration, e.g., redirect to another page
+      }
+    }
+    catch (error) {
+      console.log("Registration failed with error:")
+      console.log(error)
+    }
+  };
+
   return (
     <VStack w="$full" h="$3/4" space="md" alignItems='center' justifyContent='center'>
       <FormControl w="$48" size="md" mb='$1'>
