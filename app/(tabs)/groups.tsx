@@ -8,63 +8,52 @@ import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState, useEffect } from "react";
 import { router, useLocalSearchParams, useNavigation  } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function GroupsScreen() {
 		const [showCreate, setShowCreate] = useState(false)
 		const [showJoin, setShowJoin] = useState(false)
-		const [groupName, setGroupName] = useState("")
-		const [groupBio, setGroupBio] = useState("")
-		const [groupCode, setGroupCode] = useState("")
+		const [groupName, setGroupName] = useState('')
+		const [groupBio, setGroupBio] = useState('')
+		const [groupCode, setGroupCode] = useState('')
 		const [groupData, setGroupData] = useState<{ group_id: string; name: string; bio: string; }[]>([]);
-
-		const navigation = useNavigation();
-		const items = useLocalSearchParams()
-
-		useEffect(() => {
-			navigation.setOptions({ 
-				headerTitle: items.id,
-				headerRight: () => (
-					<Select>
-						<SelectTrigger variant="underlined">
-						<SelectIcon >
-							<Icon as={AddIcon} />
-						</SelectIcon>
-						</SelectTrigger>
-					</Select>
-				)
-			});
-		},[navigation, items])
 
 		useEffect(() => {
 			const getInitialGroupData = async () => {
 				try {
-					const { data, error } = await supabase.auth.signInWithPassword({
-						email: 'johniscool2833@gmail.com',
-						password: 'Campfire',
-					})
-					console.log(data, error)
+					const userDataString = await AsyncStorage.getItem('userData')
+					if (!userDataString) {
+						console.log("Could not retrieve")
+						return;
+					}
+					const userData = JSON.parse(userDataString)
+					console.log(userData.session.user.id)
+					const userId = (userData.session.user.id);
+					const { data, error } = await supabase
+					.from('group_users')
+					.select('*')
+					.eq('profile_id', userId);
+					
+					console.log("DATA: ", data, error)
+	
+					if (!error) {
+						const groupIds = data.map((group: { group_id: any; }) => group.group_id);
+						const { data: groupsData, error: groupsError } = await supabase
+							.from('groups')
+							.select('*')
+							.in('group_id', groupIds);
+							setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
+							console.log("GROUPDATA: ", groupsData, groupsError)
+						if (!groupsError) {
+							console.log('Groups:', groupsData);
+						} else {
+							console.error('Error fetching groups:', groupsError.message);
+						}
+					}	
 				} catch (error) {
 					console.log(error)
 				}
-				const { data: { user } } = await supabase.auth.getUser()
-				const { data, error } = await supabase
-				.from('group_users')
-				.select('*')
-				.eq('profile_id', user?.id);
 
-				if (!error) {
-					const groupIds = data.map((group: { group_id: any; }) => group.group_id);
-					const { data: groupsData, error: groupsError } = await supabase
-						.from('groups')
-						.select('*')
-						.in('group_id', groupIds);
-						setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
-					if (!groupsError) {
-						console.log('Groups:', groupsData);
-					} else {
-						console.error('Error fetching groups:', groupsError.message);
-					}
-				}
 			}
 			if (groupData.length == 0) {
 				getInitialGroupData()
@@ -76,8 +65,15 @@ export default function GroupsScreen() {
 		const createGroup = async () => {
 			console.log("Creating Group")
 			try {
-				const { data: { user } } = await supabase.auth.getUser()
-				const { data, error } = await supabase.rpc('insert_groups', {group_name: groupName, group_bio: groupBio, user_id: user?.id})
+				const userDataString = await AsyncStorage.getItem('userData')
+				if (!userDataString) {
+					console.log("Could not retrieve")
+					return;
+				}
+				const userData = JSON.parse(userDataString)
+				console.log(userData.session.user.id)
+				const userId = (userData.session.user.id);
+				const { data, error } = await supabase.rpc('insert_groups', {group_name: groupName, group_bio: groupBio, user_id: userId})
 				console.log(data, error)
 				if (!error) {
 					const groupIds = data.map((group: { group_id: any; }) => group.group_id);
