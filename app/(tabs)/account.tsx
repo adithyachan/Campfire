@@ -11,6 +11,7 @@ import {
 } from '@gluestack-ui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../utils/supabase'; 
+import { router } from 'expo-router';
 
 type Profile = {
   bio: string;
@@ -42,7 +43,7 @@ const AccountScreen = () => {
 					.eq('user_id', userId)
 					.single();
 	
-				if (error) throw error;
+				// if (error) throw error;
 	
 				setProfile({
 					bio: data?.bio ?? "Hi! I'm new to Campfire!",
@@ -69,6 +70,47 @@ const AccountScreen = () => {
     return null;
   }
 
+	const handleDeleteAccount = async () => {
+		try {
+			const userDataString = await AsyncStorage.getItem('userData');
+			console.log(`Fetched userDataString from AsyncStorage: ${userDataString}`);
+			if (!userDataString) {
+				console.error('userData not found in AsyncStorage');
+				return;
+			}
+			const userData = JSON.parse(userDataString);
+			const userId = userData.session.user.id;
+	
+			// Manually cascade delete user by deleting profile first
+			const { data: profileDeleteData, error: deleteProfileError } =  await supabase
+      .from('profiles')
+      .delete()
+      .eq('user_id', userId);
+
+			if (deleteProfileError) {
+				throw deleteProfileError;
+			} else {
+				console.log(`Profile with ID ${userId} deleted successfully.`);
+			}
+			// Delete user record from Supabase
+			const { data: userDeleteData, error: deleteUserError } = await supabase.auth.admin.deleteUser(userId)
+			if (deleteUserError) {
+				throw deleteUserError;
+			} else {
+				console.log(`User with ID ${userId} deleted successfully.`);
+			}
+	
+			// Remove userData from AsyncStorage
+			await AsyncStorage.removeItem('userData');
+			console.log('userData removed from AsyncStorage successfully.');
+	
+			// Navigate to login screen
+			router.replace("/auth/login");
+		} catch (error) {
+			console.error(error);
+			// Handle error appropriately, e.g., show an error message to the user
+		}
+	};
   return (
     <View style={styles.container}>
       <Text marginBottom={20} bold={true} size={'5xl'}>{`${profile.firstName} ${profile.lastName}`}</Text>
@@ -129,7 +171,7 @@ const AccountScreen = () => {
         size="md"
         variant="solid"
         action='negative'
-        onPress={() => console.log('Delete Account')}
+        onPress={() => handleDeleteAccount()}
         style={styles.button}
       >
         <ButtonText>Delete Account</ButtonText>
