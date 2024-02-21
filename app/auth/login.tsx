@@ -1,48 +1,29 @@
 import React, { useState } from 'react';
 import { AddIcon, AlertCircleIcon, Button, ButtonIcon, ButtonText, FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, Input, InputField, VStack } from '@gluestack-ui/themed';
-import { supabase } from 'utils/supabase'; // Import supabase instance
+import { supabase } from 'utils/supabase';
+import { router } from 'expo-router';
 
-const Auth = () => {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | undefined>('');
 
-  const handleRegister = async () => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      if (error) {
-        setError(error.message);
-      } else {
-        console.log('User signed up successfully:');
-        console.log(data);
-        // Handle successful registration, e.g., redirect to another page
-      }
-    }
-    catch (error) {
-      console.log("Registration failed with error:")
-      console.log(error)
-    }
-  };
-
   const handleLogin = async () => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
       if (error) {
         setError(error.message);
       } else {
-        console.log('User signed up successfully:');
+        console.log('User logged in successfully:');
         console.log(data);
         // Handle successful registration, e.g., redirect to another page
       }
     }
     catch (error) {
-      console.log("Registration failed with error:")
+      console.log("Log in failed with error:")
       console.log(error)
     }
   };
@@ -86,19 +67,6 @@ const Auth = () => {
             onChangeText={text => setPassword(text)}
           />
         </Input>
-        <FormControlHelper>
-          <FormControlHelperText>
-            Must be at least 6 characters.
-          </FormControlHelperText>
-        </FormControlHelper>
-        <FormControlError>
-          <FormControlErrorIcon
-            as={AlertCircleIcon}
-          />
-          <FormControlErrorText>
-            At least 6 characters are required.
-          </FormControlErrorText>
-        </FormControlError>
       </FormControl>
       <Button
         size="md"
@@ -106,12 +74,19 @@ const Auth = () => {
         action="primary"
         isDisabled={false}
         isFocusVisible={false}
-        onPress={handleRegister}
+        onPress={handleLogin}
       >
-        <ButtonText>Register</ButtonText>
+        <ButtonText>Login</ButtonText>
+      </Button>
+      <Button 
+        variant='link'
+        size='md'
+        onPress={() => router.navigate("/auth/register")}
+      >
+        <ButtonText>Don't have an account?</ButtonText>
       </Button>
     </VStack>
   );
 };
 
-export default Auth;
+export default Login;
