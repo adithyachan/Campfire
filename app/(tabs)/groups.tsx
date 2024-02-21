@@ -1,15 +1,13 @@
-
 import { View } from "react-native";
-import {ScrollView, VStack, Center,  Heading, Textarea, TextareaInput, Button, ButtonIcon, AddIcon, Modal,
+import {ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon, Modal,
 	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
 	Icon, ModalBody, CloseIcon, FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, 
-	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, Input, InputField, HStack, Text} from "@gluestack-ui/themed";
+	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, 
+	Input, InputField, HStack} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
-import { useState } from "react";
-import { router } from "expo-router";
-
-
+import { useState, useEffect } from "react";
+import { router, useLocalSearchParams, useNavigation  } from "expo-router";
 
 export default function GroupsScreen() {
 		const [showCreate, setShowCreate] = useState(false)
@@ -17,24 +15,92 @@ export default function GroupsScreen() {
 		const [groupName, setGroupName] = useState("")
 		const [groupBio, setGroupBio] = useState("")
 		const [groupCode, setGroupCode] = useState("")
+		const [groupData, setGroupData] = useState<{ group_id: string; name: string; bio: string; }[]>([]);
 
+
+
+
+		useEffect(() => {
+			navigation.setOptions({ 
+				headerTitle: items.id,
+				headerRight: () => (
+					<Button variant="link" onPress={() => setShowShare(true)}>
+						<ButtonIcon as={ShareIcon} />
+					</Button>
+				)
+			});
+		},[navigation, items])
+
+		useEffect(() => {
+			const getInitialGroupData = async () => {
+				try {
+					const { data, error } = await supabase.auth.signInWithPassword({
+						email: 'johniscool2833@gmail.com',
+						password: 'Campfire',
+					})
+					console.log(data, error)
+				} catch (error) {
+					console.log(error)
+				}
+				const { data: { user } } = await supabase.auth.getUser()
+				const { data, error } = await supabase
+				.from('group_users')
+				.select('*')
+				.eq('profile_id', user?.id);
+
+				if (!error) {
+					const groupIds = data.map((group: { group_id: any; }) => group.group_id);
+					const { data: groupsData, error: groupsError } = await supabase
+						.from('groups')
+						.select('*')
+						.in('group_id', groupIds);
+						setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
+					if (!groupsError) {
+						console.log('Groups:', groupsData);
+					} else {
+						console.error('Error fetching groups:', groupsError.message);
+					}
+				}
+			}
+			if (groupData.length == 0) {
+				getInitialGroupData()
+			}
+			// Further processing of groups if needed
+		}, [groupData]);
+		  
+
+		const createGroup = async () => {
+			console.log("Creating Group")
+			try {
+				const { data: { user } } = await supabase.auth.getUser()
+				const { data, error } = await supabase.rpc('insert_groups', {group_name: groupName, group_bio: groupBio, user_id: user?.id})
+				console.log(data, error)
+				if (!error) {
+					const groupIds = data.map((group: { group_id: any; }) => group.group_id);
+					const { data: groupsData, error: groupsError } = await supabase
+						.from('groups')
+						.select('*')
+						.in('group_id', groupIds);
+					setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
+					if (!groupsError) {
+						console.log('Groups:', groupsData);
+						// Further processing of groupsData if needed
+					} else {
+						console.error('Error fetching groups:', groupsError.message);
+					}
+				} else {
+					console.error('Error calling insert_groups RPC:', error.message);
+				}
+				setShowCreate(false)
+			} catch (error) {
+
+			}
+			setGroupName("")
+			setGroupBio("")
+		}
 		
-		const name = "Group 1"
-		const bio = "This is a test group"
 
-
-		async function createGroup() {
-			console.log("Creating Group")
-			/*
-			console.log("Creating Group")
-			const { data, error } = await supabase
-			.from('groups')
-			.insert([
-			  { bio: 'This is a test group creation' },
-			])
-			.select()
-			console.log(data, error)
-			*/
+		const joinGroup = async () => {
 			router.push({
 				pathname: "/group/[id]",
 				params: {id: groupName, bio: groupBio}
@@ -43,33 +109,16 @@ export default function GroupsScreen() {
 			setGroupBio("")
 		}
 
-		async function joinGroup() {
-			console.log("Creating Group")
-			/*
-			console.log("Creating Group")
-			const { data, error } = await supabase
-			.from('groups')
-			.insert([
-			  { bio: 'This is a test group creation' },
-			])
-			.select()
-			console.log(data, error)
-			*/
-			router.push({
-				pathname: "/group/[id]",
-				params: {id: groupName, bio: groupBio}
-			})
-			setGroupName("")
-			setGroupBio("")
-		}
-
-		console.log(showCreate)
         return (
 			<View className={styles.container}>
 			<ScrollView w="$full" h="$full">
 				<Center mt="$3" mb="$4" >
 					<VStack flex={1} w="$full" h="$full" space="md" p="$2">
-						<GroupCard name={name} bio={bio}/>
+					
+					{groupData.map(group => (
+          				<GroupCard key={group.group_id} name={group.name} bio={group.bio} />
+        			))}
+					
 					</VStack>
 
 				</Center>
@@ -92,6 +141,7 @@ export default function GroupsScreen() {
 				onClose={() => {
 				setShowCreate(false)
 				}}
+				size="md"
 					>
 						<ModalBackdrop />
 						<ModalContent>
@@ -103,7 +153,7 @@ export default function GroupsScreen() {
 						</ModalHeader>
 						<ModalBody>
 							<VStack>
-							<FormControl size="md" isDisabled={false} isInvalid={false} isReadOnly={false} isRequired={false} >
+							<FormControl size="md" isRequired={true} >
 								<FormControlLabel mb='$1'>
 								<FormControlLabelText>Group Name</FormControlLabelText>
 								</FormControlLabel>
@@ -129,15 +179,18 @@ export default function GroupsScreen() {
 								</FormControlErrorText>
 								</FormControlError>
 							</FormControl>
-							<FormControl>
+							<FormControl isRequired={true}>
 							<FormControlLabel>
 								<FormControlLabelText>Group Bio</FormControlLabelText>
 							</FormControlLabel>
-							<Textarea>
-								<TextareaInput 								
+							<Input >
+								<InputField
+									type="text"
+									placeholder="Campfire"
 									value={groupBio}
-									onChangeText={text => setGroupBio(text)}/>
-							</Textarea>
+									onChangeText={text => setGroupBio(text)}
+								/>
+								</Input>
 							<FormControlHelper>
 								<FormControlHelperText>Type your bio above. Must be under 300 characters.</FormControlHelperText>
 							</FormControlHelper>

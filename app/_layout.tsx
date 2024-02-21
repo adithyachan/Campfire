@@ -2,6 +2,8 @@ import '../global.css';
 import { Stack } from "expo-router";
 import { GluestackUIProvider } from "@gluestack-ui/themed"
 import { config } from "@gluestack-ui/config"
+import { supabase } from '~/utils/supabase';
+import { useEffect } from 'react';
 
 export const unstable_settings = {
 	// Ensure that reloading on `/modal` keeps a back button present.
@@ -9,6 +11,7 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
+	
   	return (
 			<GluestackUIProvider config={config}>
 				<Stack>
