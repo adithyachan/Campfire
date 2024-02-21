@@ -3,7 +3,7 @@ import {ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon, Modal
 	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
 	Icon, ModalBody, CloseIcon, FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, 
 	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, 
-	Input, InputField, HStack} from "@gluestack-ui/themed";
+	Input, InputField, HStack, Select, ChevronDownIcon, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectItem, SelectPortal, SelectTrigger} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState, useEffect } from "react";
@@ -17,16 +17,20 @@ export default function GroupsScreen() {
 		const [groupCode, setGroupCode] = useState("")
 		const [groupData, setGroupData] = useState<{ group_id: string; name: string; bio: string; }[]>([]);
 
-
-
+		const navigation = useNavigation();
+		const items = useLocalSearchParams()
 
 		useEffect(() => {
 			navigation.setOptions({ 
 				headerTitle: items.id,
 				headerRight: () => (
-					<Button variant="link" onPress={() => setShowShare(true)}>
-						<ButtonIcon as={ShareIcon} />
-					</Button>
+					<Select>
+						<SelectTrigger variant="underlined">
+						<SelectIcon >
+							<Icon as={AddIcon} />
+						</SelectIcon>
+						</SelectTrigger>
+					</Select>
 				)
 			});
 		},[navigation, items])

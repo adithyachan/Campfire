@@ -1,9 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Link, Tabs } from "expo-router";
-import { Pressable, StyleSheet } from "react-native";
-import { Button, ButtonIcon, AddIcon, ButtonText} from "@gluestack-ui/themed";
+import { Tabs } from "expo-router";
+import { StyleSheet } from "react-native";
 import React from "react";
-import GroupsScreen from "./groups";
 
 
 
