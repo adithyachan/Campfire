@@ -7,30 +7,60 @@ import { Modal, Button, ButtonIcon, ButtonText,
     ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, Image, Box, ScrollView } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
+import { supabase } from "~/utils/supabase";
 
 export default function GroupScreen() {
     const navigation = useNavigation();
     const items = useLocalSearchParams()
     const [showShare, setShowShare] = useState(false)
+    const [groupCode, setGroupCode] = useState('')
     console.log(items)
 
     useEffect(() => {
         navigation.setOptions({ 
-            headerTitle: items.id,
+            headerTitle: items.name,
+            headerBackTitle: 'Home',
             headerRight: () => (
                 <Button variant="link" onPress={() => setShowShare(true)}>
                     <ButtonIcon as={ShareIcon} />
                 </Button>
             )
         });
+
+        try {
+          const getCode = async () => {
+            try {
+              const { data: groupData, error: errorCode } = await supabase
+              .from('groups')
+              .select('code')
+              .eq('group_id', items.id);
+          
+              console.log(groupData)
+              setGroupCode(groupData?.[0]?.code)
+            
+              if (!groupCode) {
+                throw new Error('Group code not found.');
+              }
+            } catch (error) {
+
+            }
+          }
+
+          if (!groupCode) {
+            getCode()
+          }
+        } catch (error) {
+
+        }
+
     },[navigation, items])
 
     const ShareCode = async () => {
         try {
           const result = await Share.share({
-            message:
-              'Join My Campfire Group! Code: ',
+            message: `Join My Campfire Group! Code: ${groupCode}`,
           });
+        
           if (result.action === Share.sharedAction) {
             if (result.activityType) {
               // shared with activity type of result.activityType
@@ -53,7 +83,7 @@ export default function GroupScreen() {
           </Box>
 
               <Text>
-                  Group Name: {items.id}
+                  Group Name: {items.name}
               </Text>
               <Text>
                   Group Bio: {items.bio}
@@ -80,7 +110,9 @@ export default function GroupScreen() {
 								<FormControlLabelText>Group Code</FormControlLabelText>
 								</FormControlLabel>
                                 <Input isReadOnly={true}>
-                                <InputField />
+                                <InputField >
+                                {groupCode}
+                                </InputField>
                                 <InputSlot pr="$3" >
                                 {/* EyeIcon, EyeOffIcon are both imported from 'lucide-react-native' */}
                                 <InputIcon
