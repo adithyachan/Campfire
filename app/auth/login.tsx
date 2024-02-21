@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AddIcon, AlertCircleIcon, Button, ButtonIcon, ButtonText, FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, Input, InputField, VStack } from '@gluestack-ui/themed';
 import { supabase } from 'utils/supabase';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -26,6 +27,7 @@ const Login = () => {
         console.log('User logged in successfully:');
         console.log(data);
         // Handle successful registration, e.g., redirect to another page
+        await AsyncStorage.setItem('userData', JSON.stringify(data)); // Store data in AsyncStorage
         router.replace("/(tabs)/home-feed");
       }
     }

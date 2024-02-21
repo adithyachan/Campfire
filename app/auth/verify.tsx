@@ -1,6 +1,7 @@
 import { Button, ButtonText, VStack, Text, FormControl, FormControlLabel, FormControlError, FormControlErrorIcon, AlertCircleIcon, FormControlErrorText, FormControlLabelText } from "@gluestack-ui/themed";
 import React, { useState } from "react";
 import { supabase } from "utils/supabase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //@ts-ignore
 import SmoothPinCodeInput from "react-native-smooth-pincode-input";
@@ -30,6 +31,7 @@ const Verify = () => {
       }
       else {
         console.log(data);
+        await AsyncStorage.setItem('userData', JSON.stringify(data)); // Store data in AsyncStorage
         router.replace("/(tabs)/home-feed");
       }
     }
