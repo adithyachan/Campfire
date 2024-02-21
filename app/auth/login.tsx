@@ -6,7 +6,12 @@ import { router } from 'expo-router';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | undefined>('');
+
+  const [emailError, setEmailError] = useState<string | undefined>('');
+  const [passwordError, setPasswordError] = useState<string | undefined>('');
+
+  const [emailInvalid, setEmailInvalid] = useState(false);
+  const [passwordInvalid, setPasswordInvalid] = useState(false);
 
   const handleLogin = async () => {
     try {
@@ -15,11 +20,13 @@ const Login = () => {
         password
       });
       if (error) {
-        setError(error.message);
+        setPasswordInvalid(true);
+        setPasswordError(error.message);
       } else {
         console.log('User logged in successfully:');
         console.log(data);
         // Handle successful registration, e.g., redirect to another page
+        router.replace("/(tabs)/home-feed");
       }
     }
     catch (error) {
@@ -30,7 +37,7 @@ const Login = () => {
 
   return (
     <VStack w="$full" h="$3/4" space="md" alignItems='center' justifyContent='center'>
-      <FormControl w="$48" size="md" mb='$1'>
+      <FormControl w="$48" size="md" mb='$1' isInvalid={emailInvalid}>
         <FormControlLabel mb='$1'>
           <FormControlLabelText>Email</FormControlLabelText>
         </FormControlLabel>
@@ -51,22 +58,30 @@ const Login = () => {
             as={AlertCircleIcon}
           />
           <FormControlErrorText>
-            Invalid Email
+            { emailError }
           </FormControlErrorText>
         </FormControlError>
       </FormControl>
-      <FormControl w="$48" size="md" isDisabled={false} isInvalid={false} isReadOnly={false} isRequired={false} >
+      <FormControl w="$48" size="md" isInvalid={ passwordInvalid }>
         <FormControlLabel mb='$1'>
           <FormControlLabelText>Password</FormControlLabelText>
         </FormControlLabel>
         <Input>
           <InputField
             type="password"
-            value={password}
+            value={ password }
             placeholder="password"
-            onChangeText={text => setPassword(text)}
+            onChangeText={ text => setPassword(text) }
           />
         </Input>
+        <FormControlError>
+          <FormControlErrorIcon
+            as={ AlertCircleIcon }
+          />
+          <FormControlErrorText>
+            { passwordError }
+          </FormControlErrorText>
+        </FormControlError>
       </FormControl>
       <Button
         size="md"
