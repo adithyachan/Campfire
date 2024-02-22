@@ -139,36 +139,43 @@ export default function GroupsScreen() {
 					setGCE(true)
 					setGroupCodeError("This group does not exist!")
 				} else {
+
 					console.log('Code exists in the groups table.');
 					const groupId = groups![0].group_id; 
 					console.log(groupId)
 					const { data: insertedData, error: insertError } = await supabase
 						.from('group_users')
 						.insert([{ group_id: groupId, profile_id: userId }]);
-					console.log(insertedData, insertError)
-					const { data, error } = await supabase
-					.from('group_users')
-					.select('*')
-					.eq('profile_id', userId);
-					if (data) {
-						const groupIds = data.map((group: { group_id: any; }) => group.group_id);
-						const { data: groupsData, error: groupsError } = await supabase
-							.from('groups')
-							.select('*')
-							.in('group_id', groupIds);
-						if (groupsError) {
-							console.log("Failed to retrieve gorups")
+					if (insertError) {
+						setGCE(true)
+						setGroupCodeError("You are already a part of this group.")
+					} else {
+						const { data, error } = await supabase
+						.from('group_users')
+						.select('*')
+						.eq('profile_id', userId);
+						if (data) {
+							const groupIds = data.map((group: { group_id: any; }) => group.group_id);
+							const { data: groupsData, error: groupsError } = await supabase
+								.from('groups')
+								.select('*')
+								.in('group_id', groupIds);
+							if (groupsError) {
+								console.log("Failed to retrieve gorups")
+							}
+							setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
 						}
-						setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
+						setShowJoin(false)
+						setGroupName("")
+						setGroupBio("")
+						setGroupCode("")
+						router.push({
+							pathname: "/group/[id]",
+							params: { id: groupId, name: groups![0].name, bio: groups![0].bio} 
+						});
 					}
-					setShowJoin(false)
-					setGroupName("")
-					setGroupBio("")
-					setGroupCode("")
-					router.push({
-						pathname: "/group/[id]",
-						params: { id: groupId, name: groups![0].name, bio: groups![0].bio} 
-					});
+
+				
 				}
 
 			  } catch (error) {

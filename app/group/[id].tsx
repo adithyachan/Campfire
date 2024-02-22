@@ -1,5 +1,5 @@
 
-import {  View, Share, Alert } from "react-native";
+import {  View, Share, Alert, TouchableOpacity } from "react-native";
 import { Modal, Button, ButtonIcon, ButtonText, 
     CloseIcon, FormControl, FormControlLabel, FormControlLabelText, 
     Heading, Icon, Input, InputField, ModalBackdrop, ModalBody, 
@@ -8,6 +8,7 @@ import { Modal, Button, ButtonIcon, ButtonText,
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
+import * as Clipboard from 'expo-clipboard';
 
 export default function GroupScreen() {
     const navigation = useNavigation();
@@ -77,6 +78,11 @@ export default function GroupScreen() {
         }
     };
 
+    const copyToClipboard = async () => {
+      await Clipboard.setStringAsync(groupCode);
+    };
+  
+
     return ( 
         <View className={styles.container}>
           <ScrollView>
@@ -117,10 +123,12 @@ export default function GroupScreen() {
                                 </InputField>
                                 <InputSlot pr="$3" >
                                 {/* EyeIcon, EyeOffIcon are both imported from 'lucide-react-native' */}
+                                <TouchableOpacity onPress={() => copyToClipboard()}>
                                 <InputIcon
                                     as={CopyIcon}
                                     color="$darkBlue500"
                                 />
+                                </TouchableOpacity>
                                 </InputSlot>
                             </Input>
 							</FormControl>
