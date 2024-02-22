@@ -34,7 +34,7 @@ const Register = () => {
     try {
       const { error: e2 } = await supabase
       .from('profiles')
-      .insert({ user_id: id, first_name: firstName, last_name: lastName, email: email, phoneNumber: phoneNumber })
+      .insert({ user_id: id, first_name: firstName, last_name: lastName, email: email, phone_number: phoneNumber })
       if (e2) {
         console.log(e2);
         setPasswordError(e2.message)
@@ -284,12 +284,12 @@ const Register = () => {
       >
         <ButtonText>Already have an account?</ButtonText>
       </Button>
-      {/* <Button
+      <Button
         variant='link'
         onPress={() => router.navigate("/auth/verify")}
       >
         <ButtonText>Verify</ButtonText>
-      </Button> */}
+      </Button>
     </VStack>
   );
 };
