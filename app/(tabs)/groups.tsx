@@ -1,9 +1,9 @@
 import { View } from "react-native";
-import {ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon, Modal,
+import {Alert, ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon, Modal,
 	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
 	Icon, ModalBody, CloseIcon, FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, 
 	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, 
-	Input, InputField, HStack } from "@gluestack-ui/themed";
+	Input, InputField, HStack, AlertIcon, AlertText, InfoIcon, useToast } from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState, useEffect } from "react";
@@ -19,6 +19,8 @@ export default function GroupsScreen() {
 		const [groupBio, setGroupBio] = useState('')
 		const [groupCode, setGroupCode] = useState('')
 		const [groupData, setGroupData] = useState<{ group_id: string; name: string; bio: string; }[]>([]);
+
+
 
 		useEffect(() => {
 			const getInitialGroupData = async () => {
@@ -153,11 +155,28 @@ export default function GroupsScreen() {
 						.in('group_id', groupIds);
 					setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
 				  }
-
+					const toast = useToast()
+					toast.show({
+						placement: "top",
+						render: ({ id }) => {
+						  const toastId = "toast-" + id
+						  return (
+							<Toast nativeID={toastId} action="attention" variant="solid">
+							  <VStack space="xs">
+								<ToastTitle>New Message</ToastTitle>
+								<ToastDescription>
+								  Hey, just wanted to touch base and see how you're doing.
+								  Let's catch up soon!
+								</ToastDescription>
+							  </VStack>
+							</Toast>
+						  )
+						},
+					  })
 				  setShowJoin(false)
 				  router.push({
 					pathname: "/group/[id]",
-					params: { id: groupId, name: groups[0].name, bio: groups[0].bio } // Assuming 'bio' is a property of the group
+					params: { id: groupId, name: groups[0].name, bio: groups[0].bio} // Assuming 'bio' is a property of the group
 				  });
 				  setGroupName("")
 				  setGroupBio("")
@@ -343,7 +362,6 @@ export default function GroupsScreen() {
 						</ModalFooter>
 						</ModalContent>
 				</Modal>
-
 			</View>
 		);
     

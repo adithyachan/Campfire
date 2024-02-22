@@ -4,7 +4,7 @@ import { Modal, Button, ButtonIcon, ButtonText,
     CloseIcon, FormControl, FormControlLabel, FormControlLabelText, 
     Heading, Icon, Input, InputField, ModalBackdrop, ModalBody, 
     ModalCloseButton, ModalContent, ModalFooter, ModalHeader, 
-    ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, Image, Box, ScrollView } from "@gluestack-ui/themed";
+    ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, Pressable, Box, ScrollView, useToast, Toast, ToastDescription, ToastTitle, CheckIcon } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
@@ -14,9 +14,11 @@ export default function GroupScreen() {
     const items = useLocalSearchParams()
     const [showShare, setShowShare] = useState(false)
     const [groupCode, setGroupCode] = useState('')
+
     console.log(items)
 
     useEffect(() => {
+
         navigation.setOptions({ 
             headerTitle: items.name,
             headerBackTitle: 'Home',
@@ -73,7 +75,7 @@ export default function GroupScreen() {
         } catch (error: any) {
           Alert.alert(error.message);
         }
-      };
+    };
 
     return ( 
         <View className={styles.container}>
@@ -148,6 +150,10 @@ export default function GroupScreen() {
 						</ModalFooter>
 						</ModalContent>
 				</Modal>
+        
+
+
+
         </View>
     );
 }
