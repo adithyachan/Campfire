@@ -3,14 +3,13 @@ import {Alert, ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon
 	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
 	Icon, ModalBody, CloseIcon, FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, 
 	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, 
-	Input, InputField, HStack, AlertIcon, AlertText, InfoIcon, useToast } from "@gluestack-ui/themed";
+	Input, InputField, HStack, Textarea, TextareaInput } from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState, useEffect } from "react";
 import { router} from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from 'expo-crypto';
-
 
 export default function GroupsScreen() {
 		const [showCreate, setShowCreate] = useState(false)
@@ -19,35 +18,37 @@ export default function GroupsScreen() {
 		const [groupBio, setGroupBio] = useState('')
 		const [groupCode, setGroupCode] = useState('')
 		const [groupData, setGroupData] = useState<{ group_id: string; name: string; bio: string; }[]>([]);
-
-
+		const [groupNameError, setGroupNameError] = useState<string | undefined>('');
+		const [groupCodeError, setGroupCodeError] = useState<string | undefined>('');
+		const [showGNE, setGNE] = useState(false)
+		const [showGCE, setGCE] = useState(false)
 
 		useEffect(() => {
 			const getInitialGroupData = async () => {
 				try {
+					// Get user data from react async storage
 					const userDataString = await AsyncStorage.getItem('userData')
 					if (!userDataString) {
 						console.log("Could not retrieve")
 						return;
 					}
 					const userData = JSON.parse(userDataString)
-					console.log(userData.session.user.id)
 					const userId = (userData.session.user.id);
+
+					// query supabase for all the groups the user is a part of
 					const { data, error } = await supabase
 					.from('group_users')
 					.select('*')
 					.eq('profile_id', userId);
-					
-					console.log("DATA: ", data, error)
-	
+
+					// if query is successfull set the group cards to the groups
 					if (!error && data.length != 0) {
-						const groupIds = data.map((group: { group_id: any; }) => group.group_id);
+						const groupIds = data.map((group: { group_id: any }) => group.group_id);
 						const { data: groupsData, error: groupsError } = await supabase
 							.from('groups')
 							.select('*')
 							.in('group_id', groupIds);
 							setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
-							console.log("GROUPDATA: ", groupsData, groupsError)
 						if (!groupsError) {
 							console.log('Groups:', groupsData);
 						} else {
@@ -59,13 +60,12 @@ export default function GroupsScreen() {
 				}
 			}
 			getInitialGroupData()
-			// Further processing of groups if needed
 		}, []);
 		  
 
 		const createGroup = async () => {
-			console.log("Creating Group")
 			try {
+				// Get user data from react async storage
 				const userDataString = await AsyncStorage.getItem('userData')
 				if (!userDataString) {
 					console.log("Could not retrieve")
@@ -75,15 +75,15 @@ export default function GroupsScreen() {
 				console.log(userData.session.user.id)
 				const userId = (userData.session.user.id);
 
+				// Create a group code
 				const groupCode = await Crypto.digestStringAsync(
 					Crypto.CryptoDigestAlgorithm.SHA256,
 					groupName,
 					{ encoding: Crypto.CryptoEncoding.BASE64 }
 				);
 
-
+				// Insert a group using RPC
 				const { data, error } = await supabase.rpc('insert_groups', {group_name: groupName, group_bio: groupBio, group_code: groupCode, user_id: userId})
-				console.log(data, error)
 				if (!error) {
 					const groupIds = data.map((group: { group_id: any; }) => group.group_id);
 					const { data: groupsData, error: groupsError } = await supabase
@@ -93,19 +93,21 @@ export default function GroupsScreen() {
 					setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
 					if (!groupsError) {
 						console.log('Groups:', groupsData);
-						// Further processing of groupsData if needed
 					} else {
 						console.error('Error fetching groups:', groupsError.message);
 					}
+					setShowCreate(false)
+					setGroupName("")
+					setGroupBio("")
 				} else {
-					console.error('Error calling insert_groups RPC:', error.message);
+					if (error.code == '23505') {
+						setGroupNameError('This group name already exists!')
+						setGNE(true)
+					}
 				}
-				setShowCreate(false)
 			} catch (error) {
-
+				console.log(error)
 			}
-			setGroupName("")
-			setGroupBio("")
 		}
 		
 
@@ -130,60 +132,40 @@ export default function GroupsScreen() {
 				  .from('groups')
 				  .select('*')
 				  .eq('code', groupCode);
-			  
-				if (error) {
-				  throw new Error(error.message);
-				}
-				
-				if (groups.length > 0) {
-				  console.log('Code exists in the groups table.');
-				  const groupId = groups[0].group_id; 
-				  console.log(groupId)
-				  const { data: insertedData, error: insertError } = await supabase
-					.from('group_users')
-					.insert([{ group_id: groupId, profile_id: userId }]);
-				  console.log(insertedData, insertError)
-				  const { data, error } = await supabase
-				  .from('group_users')
-				  .select('*')
-				  .eq('profile_id', userId);
-				  if (data) {
-					const groupIds = data.map((group: { group_id: any; }) => group.group_id);
-					const { data: groupsData, error: groupsError } = await supabase
-						.from('groups')
-						.select('*')
-						.in('group_id', groupIds);
-					setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
-				  }
-					const toast = useToast()
-					toast.show({
-						placement: "top",
-						render: ({ id }) => {
-						  const toastId = "toast-" + id
-						  return (
-							<Toast nativeID={toastId} action="attention" variant="solid">
-							  <VStack space="xs">
-								<ToastTitle>New Message</ToastTitle>
-								<ToastDescription>
-								  Hey, just wanted to touch base and see how you're doing.
-								  Let's catch up soon!
-								</ToastDescription>
-							  </VStack>
-							</Toast>
-						  )
-						},
-					  })
-				  setShowJoin(false)
-				  router.push({
-					pathname: "/group/[id]",
-					params: { id: groupId, name: groups[0].name, bio: groups[0].bio} // Assuming 'bio' is a property of the group
-				  });
-				  setGroupName("")
-				  setGroupBio("")
-				  setGroupCode("")
+				console.log(groups)
+				if (groups?.length == 0) {
+					setGCE(true)
+					setGroupCodeError("This group does not exist!")
 				} else {
-				  console.log('Code does not exist in the groups table.');
+					console.log('Code exists in the groups table.');
+					const groupId = groups![0].group_id; 
+					console.log(groupId)
+					const { data: insertedData, error: insertError } = await supabase
+						.from('group_users')
+						.insert([{ group_id: groupId, profile_id: userId }]);
+					console.log(insertedData, insertError)
+					const { data, error } = await supabase
+					.from('group_users')
+					.select('*')
+					.eq('profile_id', userId);
+					if (data) {
+						const groupIds = data.map((group: { group_id: any; }) => group.group_id);
+						const { data: groupsData, error: groupsError } = await supabase
+							.from('groups')
+							.select('*')
+							.in('group_id', groupIds);
+						setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
+					}
+					setShowJoin(false)
+					setGroupName("")
+					setGroupBio("")
+					setGroupCode("")
+					router.push({
+						pathname: "/group/[id]",
+						params: { id: groupId, name: groups![0].name, bio: groups![0].bio} // Assuming 'bio' is a property of the group
+					});
 				}
+
 			  } catch (error) {
 
 			  }
@@ -220,7 +202,10 @@ export default function GroupsScreen() {
 			<Modal
 				isOpen={showCreate}
 				onClose={() => {
-				setShowCreate(false)
+					setShowCreate(false)
+					setGNE(false)
+					setGroupName("")
+					setGroupBio("")
 				}}
 				size="md"
 					>
@@ -234,7 +219,7 @@ export default function GroupsScreen() {
 						</ModalHeader>
 						<ModalBody>
 							<VStack>
-							<FormControl size="md" isRequired={true} >
+							<FormControl size="md" isRequired={true} isInvalid={showGNE}>
 								<FormControlLabel mb='$1'>
 								<FormControlLabelText>Group Name</FormControlLabelText>
 								</FormControlLabel>
@@ -256,7 +241,7 @@ export default function GroupsScreen() {
 									as={AlertCircleIcon}
 								/>
 								<FormControlErrorText>
-									At least 6 characters are required.
+									{groupNameError}
 								</FormControlErrorText>
 								</FormControlError>
 							</FormControl>
@@ -264,12 +249,20 @@ export default function GroupsScreen() {
 							<FormControlLabel>
 								<FormControlLabelText>Group Bio</FormControlLabelText>
 							</FormControlLabel>
+							<Textarea>
+								<TextareaInput 
+								type="text"
+								value={groupBio}
+								onChangeText={text => setGroupBio(text)}
+								maxLength={300}
+								>
+
+								</TextareaInput>
+							</Textarea>
 							<Input >
 								<InputField
 									type="text"
-									placeholder="Campfire"
-									value={groupBio}
-									onChangeText={text => setGroupBio(text)}
+
 								/>
 								</Input>
 							<FormControlHelper>
@@ -278,6 +271,7 @@ export default function GroupsScreen() {
 							</FormControl>
 							</VStack>
 						</ModalBody>
+
 						<ModalFooter>
 							<Button
 							variant="outline"
@@ -286,6 +280,9 @@ export default function GroupsScreen() {
 							mr="$3"
 							onPress={() => {
 								setShowCreate(false)
+								setGNE(false)
+								setGroupName("")
+								setGroupBio("")
 							}}
 							>
 							<ButtonText>Cancel</ButtonText>
@@ -308,7 +305,9 @@ export default function GroupsScreen() {
 				<Modal
 				isOpen={showJoin}
 				onClose={() => {
-				setShowJoin(false)
+					setShowJoin(false)
+					setGCE(false)
+					setGroupCode("")
 				}}
 					>
 						<ModalBackdrop />
@@ -321,7 +320,7 @@ export default function GroupsScreen() {
 						</ModalHeader>
 						<ModalBody>
 							<VStack>
-							<FormControl size="md" isDisabled={false} isInvalid={false} isReadOnly={false} isRequired={false} >
+							<FormControl size="md" isDisabled={false} isInvalid={showGCE} >
 								<FormControlLabel mb='$1'>
 								<FormControlLabelText>Group Code</FormControlLabelText>
 								</FormControlLabel>
@@ -333,6 +332,14 @@ export default function GroupsScreen() {
 									onChangeText={text => setGroupCode(text)}
 								/>
 								</Input>
+								<FormControlError>
+								<FormControlErrorIcon
+									as={AlertCircleIcon}
+								/>
+								<FormControlErrorText>
+									{groupCodeError}
+								</FormControlErrorText>
+								</FormControlError>
 							</FormControl>
 							</VStack>
 						</ModalBody>
@@ -344,6 +351,8 @@ export default function GroupsScreen() {
 							mr="$3"
 							onPress={() => {
 								setShowJoin(false)
+								setGCE(false)
+								setGroupCode("")
 							}}
 							>
 							<ButtonText>Cancel</ButtonText>
