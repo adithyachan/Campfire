@@ -194,6 +194,12 @@ const bioChangeModal = (
 			console.error(error);
 		}
 	};
+
+	const handleLogout = async () => {
+		await AsyncStorage.removeItem('userData');
+		console.log('[logout] userData removed from AsyncStorage successfully.');
+		router.replace('/auth/login');
+	}
   return (
     <View style={styles.container}>
       <Text marginBottom={20} bold={true} size={'5xl'}>{`${profile.firstName} ${profile.lastName}`}</Text>
@@ -246,7 +252,7 @@ const bioChangeModal = (
         size="md"
         variant="solid"
         action='negative'
-        onPress={() => console.log('Log Out')}
+        onPress={() => handleLogout()}
         style={styles.button}
       >
         <ButtonText>Log Out</ButtonText>
