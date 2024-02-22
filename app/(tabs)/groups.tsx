@@ -3,11 +3,11 @@ import {Alert, ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon
 	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
 	Icon, ModalBody, CloseIcon, FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, 
 	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, 
-	Input, InputField, HStack, Textarea, TextareaInput } from "@gluestack-ui/themed";
+	Input, InputField, HStack, Fab, FabIcon, Box, Toast, ToastDescription, ToastTitle, useToast} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState, useEffect } from "react";
-import { router} from "expo-router";
+import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from 'expo-crypto';
 
@@ -22,8 +22,11 @@ export default function GroupsScreen() {
 		const [groupCodeError, setGroupCodeError] = useState<string | undefined>('');
 		const [showGNE, setGNE] = useState(false)
 		const [showGCE, setGCE] = useState(false)
+		const [showModal, setShowModal] = useState(false)
+
 
 		useEffect(() => {
+
 			const getInitialGroupData = async () => {
 				try {
 					// Get user data from react async storage
@@ -112,7 +115,6 @@ export default function GroupsScreen() {
 		
 
 		const joinGroup = async () => {
-			console.log("Joining Group")
 			try {
 				const userDataString = await AsyncStorage.getItem('userData');
 				if (!userDataString) {
@@ -154,6 +156,9 @@ export default function GroupsScreen() {
 							.from('groups')
 							.select('*')
 							.in('group_id', groupIds);
+						if (groupsError) {
+							console.log("Failed to retrieve gorups")
+						}
 						setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
 					}
 					setShowJoin(false)
@@ -162,7 +167,7 @@ export default function GroupsScreen() {
 					setGroupCode("")
 					router.push({
 						pathname: "/group/[id]",
-						params: { id: groupId, name: groups![0].name, bio: groups![0].bio} // Assuming 'bio' is a property of the group
+						params: { id: groupId, name: groups![0].name, bio: groups![0].bio} 
 					});
 				}
 
@@ -186,19 +191,10 @@ export default function GroupsScreen() {
 
 				</Center>
 			</ScrollView>
-			<HStack>
-			<Button onPress={() => setShowCreate(true)}> 
-				<ButtonIcon as={AddIcon}>
-
-				</ButtonIcon>
-			</Button>
-			<Button onPress={() => setShowJoin(true)}> 
-				<ButtonText color="$textLight0">
-					Join
-				</ButtonText>
-			</Button>
-			</HStack>
-
+					
+			<Fab size="lg" placement="bottom right" onPress={() => {setShowModal(true)}}>
+				<FabIcon as={AddIcon} size="sm" />
+			</Fab>
 			<Modal
 				isOpen={showCreate}
 				onClose={() => {
@@ -249,20 +245,12 @@ export default function GroupsScreen() {
 							<FormControlLabel>
 								<FormControlLabelText>Group Bio</FormControlLabelText>
 							</FormControlLabel>
-							<Textarea>
-								<TextareaInput 
+							<Input >
+								<InputField
 								type="text"
 								value={groupBio}
 								onChangeText={text => setGroupBio(text)}
 								maxLength={300}
-								>
-
-								</TextareaInput>
-							</Textarea>
-							<Input >
-								<InputField
-									type="text"
-
 								/>
 								</Input>
 							<FormControlHelper>
@@ -371,6 +359,55 @@ export default function GroupsScreen() {
 						</ModalFooter>
 						</ModalContent>
 				</Modal>
+
+
+				<Modal
+				isOpen={showModal}
+				onClose={() => {
+					setShowModal(false)
+				}}
+					>
+						<ModalBackdrop />
+						<ModalContent>
+						<ModalHeader>
+							<Heading size="lg">
+								Group Settings
+							</Heading>
+							<ModalCloseButton>
+							<Icon as={CloseIcon} />
+							</ModalCloseButton>
+						</ModalHeader>
+						<ModalBody>
+						<HStack space="md" reversed={false}>
+						<Button  bgColor="$amber100" variant="solid" size="md" onPress={() => {setShowModal(false); setShowCreate(true);}}> 
+						<ButtonText color="$amber700">
+								Create a group
+							</ButtonText>
+						</Button>
+						<Button bgColor="$amber100" variant="solid" size="md"  onPress={() => {setShowModal(false); setShowJoin(true);}}> 
+							<ButtonText color="$amber700">
+								Join a group
+							</ButtonText>
+						</Button>
+						</HStack>
+
+						</ModalBody>
+						<ModalFooter>
+							<Button
+							variant="outline"
+							size="sm"
+							action="secondary"
+							mr="$3"
+							onPress={() => {
+								setShowModal(false)
+							}}
+							>
+							<ButtonText>Cancel</ButtonText>
+							</Button>
+						</ModalFooter>
+						</ModalContent>
+				</Modal>
+
 			</View>
 		);
     
