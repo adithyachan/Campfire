@@ -52,8 +52,25 @@ const Login = () => {
         password
       });
       if (error) {
-        setPasswordError(error.message);
-      } else {
+        console.log(error.message);
+        if (error.message == "Email not confirmed") {
+          const { data, error } = await supabase.auth.resend({ type: "signup", email: email })
+          if (error) {
+            console.log(error.message);
+          }
+          else {
+            console.log(data);
+            router.navigate({ 
+              pathname: "auth/verify", 
+              params: { email: email } 
+            });
+          }
+        }
+        else {
+          setPasswordError(error.message);
+        }
+      } 
+      else {
         console.log('User logged in successfully:');
         console.log(data);
         // Handle successful registration, e.g., redirect to another page
