@@ -132,9 +132,9 @@ const ResetPassword = () => {
       <Button 
         variant='link'
         size='md'
-        onPress={() => router.navigate("/auth/login")}
+        onPress={() => router.back()}
       >
-        <ButtonText>Back to Login</ButtonText>
+        <ButtonText>Back</ButtonText>
       </Button>
       
     </VStack>
