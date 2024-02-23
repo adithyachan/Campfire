@@ -1,5 +1,5 @@
 import { Button, ButtonText, VStack, Text, FormControl, FormControlLabel, FormControlError, FormControlErrorIcon, AlertCircleIcon, FormControlErrorText, FormControlLabelText } from "@gluestack-ui/themed";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "utils/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -7,21 +7,68 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import SmoothPinCodeInput from "react-native-smooth-pincode-input";
 import { router, useLocalSearchParams } from "expo-router";
 
+const timeout = 60;
+
 const Verify = () => {
   const [code, setCode] = useState("");
-  const [isOTPValid, setIsOTPValid] = useState(true);
   const [codeError, setCodeError] = useState("");
   const params = useLocalSearchParams();
-  const { email } = params;
+  const email = params.email as string ?? "example@email.mail";
+  const type = params.type as string ?? "";
+
+  const [seconds, setSeconds] = useState(timeout);
+  const timer = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    handleStart()
+    return () => clearInterval(timer.current);
+  }, [])
+
+  const handleResend = async () => {
+    handleStart();
+
+    if (type == "signup") {
+      const { data, error } = await supabase.auth.resend({ type: "signup", email: email })
+
+      if (error) {
+        setCodeError(error.message)
+        console.log(error)
+      } 
+      else {
+        console.log("resent sucessfully")
+        console.log(data)
+      }
+    }
+    else {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email)
+
+      if (error) {
+        setCodeError(error.message)
+        console.log(error)
+      } 
+      else {
+        console.log("resent sucessfully")
+        console.log(data)
+      }
+    }
+  }
+
+  const handleStart = () => {
+    timer.current = setInterval(() => {
+    setSeconds((prev) => {
+      if (prev <= 1) {
+        clearInterval(timer.current);
+        return timeout;
+      }
+      
+      return prev - 1;
+    });
+    }, 1000);
+  }
   
   const verifyOTP = async () => {
-    if (code.length != 6) {
-      setIsOTPValid(false);
-      return;
-    }
-
     try {
-      const { data, error } = await supabase.auth.verifyOtp({ email: (email as string), token: code, type: "email"})
+      const { data, error } = await supabase.auth.verifyOtp({ email: email, token: code, type: type == "signup" ? "email" : "recovery"})
       console.log(email)
       console.log(code)
 
@@ -32,7 +79,7 @@ const Verify = () => {
       else {
         console.log(data);
         await AsyncStorage.setItem('userData', JSON.stringify(data)); // Store data in AsyncStorage
-        router.replace("/(tabs)/home-feed");
+        router.navigate(type == "signup" ? "/(tabs)/home-feed" : "/auth/resetpassword");
       }
     }
     catch (error) {
@@ -42,7 +89,8 @@ const Verify = () => {
 
   return (
     <VStack w="$full" h="$full" justifyContent="center" alignItems="center" space="xl">
-      <FormControl isInvalid={!isOTPValid} w="$full" alignItems="center">
+      <Text>An email was sent to { email }</Text>
+      <FormControl isInvalid={ codeError != "" } w="$full" alignItems="center">
         <FormControlLabel>
           <FormControlLabelText>Please enter your 6-digit code:</FormControlLabelText>
         </FormControlLabel>
@@ -60,16 +108,21 @@ const Verify = () => {
 
         />
         <FormControlError>
-          <FormControlErrorIcon as={AlertCircleIcon} />
+          <FormControlErrorIcon as={ AlertCircleIcon } />
             <FormControlErrorText>
-              {codeError}
+              { codeError }
             </FormControlErrorText>
           </FormControlError>
       </FormControl>
       
-      <Button w="$3/5" onPress={() => verifyOTP()}>
+      <Button w="$3/5" onPress={() => verifyOTP()} isDisabled={code.length != 6}>
         <ButtonText>Verify</ButtonText>
       </Button>
+
+      <Button w="$3/5" variant="link" disabled={ seconds < timeout } onPress={handleResend}>
+          <ButtonText>{ seconds < timeout ? `Resend in ${seconds}s` : "Didn't get a link?"  }</ButtonText>
+      </Button>
+      <Text fontSize="$xs">You can resend an OTP every 60 seconds</Text>
     </VStack>
   );
 }
