@@ -21,6 +21,9 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../utils/supabase'; 
 import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 
 type Profile = {
   bio: string;
@@ -68,7 +71,73 @@ const AccountScreen = () => {
 	
 		fetchProfile();
 	}, []);
-	
+
+  const onChangeProfilePhoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Camera roll permissions are required to change your profile picture.');
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.25,
+    });
+  
+    if (result.canceled) {
+      return;
+    }
+  
+    const userDataString = await AsyncStorage.getItem('userData');
+    if (!userDataString) {
+      Alert.alert('Error', 'User data not found.');
+      console.error('User data not found');
+      return;
+    }
+  
+    const userData = JSON.parse(userDataString);
+    const userId = userData.session.user.id;
+    const img = result.assets[0];
+    const base64 = await FileSystem.readAsStringAsync(img.uri, { encoding: 'base64' });
+    const filePath = `${userId}.png`;
+    const contentType = 'image/png';
+  
+    try {
+      const { error: uploadError } = await supabase.storage.from('profile_photos').upload(filePath, decode(base64), {
+        contentType,
+        cacheControl: '3600',
+        upsert: true
+      });
+  
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+  
+      const { data } = supabase.storage.from('profile_photos').getPublicUrl(filePath);
+  
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: data.publicUrl })
+        .eq('user_id', userId);
+  
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      const updatedAvatarUrl = `${data.publicUrl}?v=${new Date().getTime()}`;
+      setProfile((prevProfile) => {
+        if (!prevProfile) return null;
+        return { ...prevProfile, avatarUrl: updatedAvatarUrl };
+      });
+  
+      Alert.alert('Success', 'Your profile photo has been updated successfully.');
+  
+    } catch (error) {
+      console.error('Error updating profile photo:', error);
+    }
+  };
 
   if (loading) {
     return <ActivityIndicator />;
@@ -212,7 +281,7 @@ const bioChangeModal = (
       
       <Avatar bgColor='$amber600' size="2xl" borderRadius="$full">
         {profile.avatarUrl ? (
-          <AvatarImage source={{ uri: profile.avatarUrl }} />
+          <AvatarImage source={{ uri: profile.avatarUrl }} alt="Profile picture"/>
         ) : (
           <AvatarFallbackText>{`${profile.firstName} ${profile.lastName}`}</AvatarFallbackText>
         )}
@@ -249,7 +318,7 @@ const bioChangeModal = (
         size="md"
         variant="solid"
         action="secondary"
-        onPress={() => console.log('Change Profile Photo')}
+        onPress={onChangeProfilePhoto}
         style={styles.button}
       >
         <ButtonText>Change Profile Photo</ButtonText>
