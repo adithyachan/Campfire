@@ -79,7 +79,7 @@ const Verify = () => {
       else {
         console.log(data);
         await AsyncStorage.setItem('userData', JSON.stringify(data)); // Store data in AsyncStorage
-        router.replace(type == "signup" ? "/(tabs)/home-feed" : "/auth/resetpassword");
+        router.navigate(type == "signup" ? "/(tabs)/home-feed" : "/auth/resetpassword");
       }
     }
     catch (error) {
