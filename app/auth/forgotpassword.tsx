@@ -5,13 +5,10 @@ import { router } from 'expo-router';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
   const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/;
 
   const handleEmailChanged = (email: string) => {
     email = email.toLowerCase();
@@ -30,24 +27,8 @@ const ForgotPassword = () => {
     setEmailError("");
   }
 
-  const handlePasswordChanged = (password: string) => {
-    setPassword(password);
-    if (password == "") {
-      setPasswordError("");
-      return;
-    }
-
-    const passwordValid = passwordRegex.test(password);
-    if (!passwordValid) {
-      setPasswordError("Passwords must be 6+ characters with 1+ special characters and 1+ numbers");
-      return;
-    }
-
-    setPasswordError("");
-  }
-
-  const handleResetPassword = async () => {
-    console.log('reset password');
+  const handleSendResetLink = async () => {
+    console.log('handle sending reset password email');
   }
   return(
     <VStack w="$full" h="$full" space="xl" alignItems='center' justifyContent='center'>
@@ -64,6 +45,9 @@ const ForgotPassword = () => {
             onChangeText={handleEmailChanged}
           />
         </Input>
+        <FormControlHelperText>
+          { 'If the email is associated with an account, check your inbox for a password reset link'}
+        </FormControlHelperText>
         <FormControlError>
           <FormControlErrorIcon
             as={AlertCircleIcon}
@@ -73,36 +57,15 @@ const ForgotPassword = () => {
           </FormControlErrorText>
         </FormControlError>
       </FormControl>
-      <FormControl w="$1/2" isInvalid={passwordError != ""}>
-        <FormControlLabel>
-          <FormControlLabelText>New Password</FormControlLabelText>
-        </FormControlLabel>
-        <Input>
-          <InputField
-            type="password"
-            value={password}
-            placeholder="password"
-            onChangeText={handlePasswordChanged}
-          />
-        </Input>
-        <FormControlError>
-          <FormControlErrorIcon
-            as={AlertCircleIcon}
-          />
-          <FormControlErrorText>
-            { passwordError }
-          </FormControlErrorText>
-        </FormControlError>
-      </FormControl>
+      
       <Button
         w="$3/5"
         variant="solid"
         action="primary"
-        onPress={handleResetPassword}
-        isDisabled={email == "" || 
-        password == ""}
+        onPress={handleSendResetLink}
+        isDisabled={email == "" || emailError != ""}
       >
-        <ButtonText>Update</ButtonText>
+        <ButtonText>Send Reset Link</ButtonText>
       </Button>
       <Button 
         variant='link'
@@ -111,12 +74,6 @@ const ForgotPassword = () => {
       >
         <ButtonText>Back to Login</ButtonText>
       </Button>
-      {/* <Button
-        variant='link'
-        onPress={() => router.navigate("/auth/verify")}
-      >
-        <ButtonText>Verify</ButtonText>
-      </Button> */}
     </VStack>
   )
   
