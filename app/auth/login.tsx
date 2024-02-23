@@ -106,6 +106,15 @@ const Login = () => {
             onChangeText={handlePasswordChanged}
           />
         </Input>
+        <FormControlHelper>
+          <Button 
+            variant='link'
+            size='xs'
+            onPress={() => router.navigate("")}
+          >
+            <ButtonText>Forgot your password?</ButtonText>
+          </Button>
+        </FormControlHelper>
         <FormControlError>
           <FormControlErrorIcon
             as={ AlertCircleIcon }
