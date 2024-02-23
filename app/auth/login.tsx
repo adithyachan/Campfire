@@ -94,7 +94,7 @@ const Login = () => {
           </FormControlErrorText>
         </FormControlError>
       </FormControl>
-      <FormControl w="$1/2" size="md" isInvalid={ passwordError != "auth/forgotpassword" }>
+      <FormControl w="$1/2" size="md" isInvalid={ passwordError != "" }>
         <FormControlLabel mb='$1'>
           <FormControlLabelText>Password</FormControlLabelText>
         </FormControlLabel>
@@ -110,7 +110,7 @@ const Login = () => {
           <Button 
             variant='link'
             size='xs'
-            onPress={() => router.navigate("")}
+            onPress={() => router.navigate("auth/forgotpassword")}
           >
             <ButtonText>Forgot your password?</ButtonText>
           </Button>

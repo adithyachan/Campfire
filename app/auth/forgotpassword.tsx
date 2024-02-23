@@ -4,7 +4,9 @@ import { supabase } from 'utils/supabase';
 import { router } from 'expo-router';
 
 const ForgotPassword = () => {
-
+  return (
+    <></>
+  )
 }
 
 export default ForgotPassword
