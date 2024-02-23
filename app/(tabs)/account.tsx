@@ -196,10 +196,16 @@ const bioChangeModal = (
 	};
 
 	const handleLogout = async () => {
+    
+    const { error } = await supabase.auth.signOut();
 		await AsyncStorage.removeItem('userData');
 		console.log('[logout] userData removed from AsyncStorage successfully.');
 		router.replace('/auth/login');
 	}
+
+  const handleResetPassword = async () => {
+    router.navigate("/auth/resetpassword")
+  }
   return (
     <View style={styles.container}>
       <Text marginBottom={20} bold={true} size={'5xl'}>{`${profile.firstName} ${profile.lastName}`}</Text>
@@ -223,7 +229,7 @@ const bioChangeModal = (
         size="md"
         variant="solid"
         action="primary"
-        onPress={() => console.log('Reset Password')}
+        onPress={() => handleResetPassword()}
         style={styles.button}
       >
         <ButtonText>Reset Password</ButtonText>

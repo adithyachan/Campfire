@@ -15,6 +15,7 @@ export default function RootLayout() {
 					<Stack.Screen name='index' options={{ headerShown: false }}/>
 					<Stack.Screen name='auth/register' options={{ headerShown: false }}/>
 					<Stack.Screen name='auth/forgotpassword' options={{ headerShown: false }}/>
+					<Stack.Screen name='auth/resetpassword' options={{ headerShown: false }}/>
 					<Stack.Screen name='auth/verify' options={{ headerShown: false}}/>
 					<Stack.Screen name='auth/login' options={{ headerShown: false}}/>
 					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />

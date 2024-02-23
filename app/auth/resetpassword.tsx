@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AddIcon, AlertCircleIcon, Button, ButtonIcon, ButtonText, FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, HStack, Input, InputField, Text, VStack } from '@gluestack-ui/themed';
 import { supabase } from 'utils/supabase';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
@@ -30,10 +31,6 @@ const ResetPassword = () => {
 
   const handleConfirmPasswordChanged = (password: string) => {
     setConfirmPassword(password);
-    if (password == "") {
-      setConfirmPasswordError("");
-      return;
-    }
     if (password != newPassword) {
       setConfirmPasswordError("Passwords must match");
       return;
@@ -49,7 +46,33 @@ const ResetPassword = () => {
   }
 
   const handleResetPassword = async () => {
-    console.log('reset password');
+    // console.log('reset password');
+
+    // FOR TESTING PURPOSES ONLY
+    // try {
+    //   const { data, error } = await supabase.auth.signInWithPassword({
+    //     email: 'albert.xu.13103@gmail.com',
+    //     password: 'test123!'
+    //   });
+    //   console.log(data);
+    // } catch (error) {
+    //   console.log(error)
+    // }
+    // END FOR TESTING PURPOSES ONLY
+    
+
+    const {data: {user}}  = await supabase.auth.getUser();
+    if (user != null) {
+      const userEmail = user.email;
+      console.log(userEmail)
+      await supabase.auth.updateUser({ password: newPassword })
+
+    }
+    const { error } = await supabase.auth.signOut();
+    await AsyncStorage.removeItem('userData');
+    router.navigate("/auth/login");
+
+    
   }
   return(
     <VStack w="$full" h="$full" space="xl" alignItems='center' justifyContent='center'>
@@ -60,7 +83,7 @@ const ResetPassword = () => {
         </FormControlLabel>
         <Input>
           <InputField
-            type="text"
+            type="password"
             value={newPassword}
             placeholder="New Password"
             onChangeText={handleNewPasswordChanged}
@@ -81,7 +104,7 @@ const ResetPassword = () => {
         </FormControlLabel>
         <Input>
           <InputField
-            type="text"
+            type="password"
             value={confirmPassword}
             placeholder="Confirm Password"
             onChangeText={handleConfirmPasswordChanged}
@@ -92,7 +115,7 @@ const ResetPassword = () => {
             as={AlertCircleIcon}
           />
           <FormControlErrorText>
-            { newPasswordError }
+            { confirmPasswordError }
           </FormControlErrorText>
         </FormControlError>
       </FormControl>
@@ -113,12 +136,7 @@ const ResetPassword = () => {
       >
         <ButtonText>Back to Login</ButtonText>
       </Button>
-      {/* <Button
-        variant='link'
-        onPress={() => router.navigate("/auth/verify")}
-      >
-        <ButtonText>Verify</ButtonText>
-      </Button> */}
+      
     </VStack>
   )
   
