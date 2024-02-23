@@ -83,12 +83,18 @@ export default function GroupScreen() {
 
     return ( 
         <View className={styles.container}>
-    <Text>
-              Group Name: {items.name}
+          <ScrollView>
+          <Heading >
+            {items.name}
+          </Heading>
+          <Text>
+
           </Text>
           <Text>
               Group Bio: {items.bio}
           </Text>
+          </ScrollView>
+
 
         <Modal
 				isOpen={showShare}

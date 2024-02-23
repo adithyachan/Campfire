@@ -204,7 +204,7 @@ export default function GroupsScreen() {
       selectionMode="single"
       closeOnSelect={true}
 	  borderRadius={"$xl"}
-	  mx={"$1"}
+	  mx={"$2"}
 
       trigger={({ ...triggerProps }) => {
         return (
