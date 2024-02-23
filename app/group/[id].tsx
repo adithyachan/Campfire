@@ -3,7 +3,9 @@ import { Modal, Button, ButtonIcon, ButtonText,
     CloseIcon, FormControl, FormControlLabel, FormControlLabelText, 
     Heading, Icon, Input, InputField, ModalBackdrop, ModalBody, 
     ModalCloseButton, ModalContent, ModalFooter, ModalHeader, 
-    ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, Pressable, Box, ScrollView, useToast, Toast, ToastDescription, ToastTitle, CheckIcon, Image } from "@gluestack-ui/themed";
+    ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, 
+    Pressable, Box, ScrollView, useToast, Toast, 
+    ToastDescription, ToastTitle, CheckIcon, Image, Card, Avatar, AvatarFallbackText, AvatarImage, Divider, HStack } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
@@ -83,16 +85,61 @@ export default function GroupScreen() {
 
     return ( 
         <View className={styles.container}>
-          <ScrollView>
-          <Heading >
+          <ScrollView width={"$full"}>
+            <Card width={"$full"} size="lg" variant="ghost" p={"$0"} >
+            <Image
+            w={"$full"}
+            h={"$1/2"}
+  source={{
+    
+    uri: "https://source.unsplash.com/f9bkzNQyylg"
+  }}
+/>
+      <Box flexDirection="row" p={"$3"}>
+        <VStack>
+          <Heading size="xl" mb="$1">
             {items.name}
           </Heading>
-          <Text>
+          <Text size="sm" >
+            {items.bio}
+          </Text>
+        </VStack>
+      </Box>
+      <Box
+        my="$3"
+        sx={{
+          flexDirection: "row",
+        }}
+      >
+        <HStack width={"$full"} justifyContent="space-evenly">
+        <VStack
+          alignItems="center"
+        >
+          <Heading size="xs" fontFamily="$heading">
+            10
+          </Heading>
+          <Text size="xs">posts</Text>
+        </VStack>
+        <VStack
+          alignItems="center"
+        >
+          <Heading size="xs" fontFamily="$heading">
+            200
+          </Heading>
+          <Text size="xs">followers</Text>
+        </VStack>
+        <VStack
+          alignItems="center"
+        >
+          <Heading size="xs" fontFamily="$heading">
+            12
+          </Heading>
+          <Text size="xs">Members</Text>
+      </VStack>
+        </HStack>
 
-          </Text>
-          <Text>
-              Group Bio: {items.bio}
-          </Text>
+      </Box>
+    </Card>
           </ScrollView>
 
 

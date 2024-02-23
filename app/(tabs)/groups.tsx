@@ -8,7 +8,6 @@ import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState, useEffect } from "react";
 import { router } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from 'expo-crypto';
 import { UsersRound } from 'lucide-react-native'
 
@@ -31,13 +30,20 @@ export default function GroupsScreen() {
 			const getInitialGroupData = async () => {
 				try {
 					// Get user data from react async storage
-					const userDataString = await AsyncStorage.getItem('userData')
-					if (!userDataString) {
+					// const userDataString = await AsyncStorage.getItem('userData')
+					// if (!userDataString) {
+					// 	console.log("Could not retrieve")
+					// 	return;
+					// }
+					// const userData = JSON.parse(userDataString)
+					// const userId = (userData.session.user.id);
+
+					const {data: {user}}  = await supabase.auth.getUser();
+					if (user == null) {
 						console.log("Could not retrieve")
 						return;
 					}
-					const userData = JSON.parse(userDataString)
-					const userId = (userData.session.user.id);
+					const userId = user.id;
 
 					// query supabase for all the groups the user is a part of
 					const { data, error } = await supabase
@@ -70,14 +76,13 @@ export default function GroupsScreen() {
 		const createGroup = async () => {
 			try {
 				// Get user data from react async storage
-				const userDataString = await AsyncStorage.getItem('userData')
-				if (!userDataString) {
+
+				const {data: {user}}  = await supabase.auth.getUser();
+				if (user == null) {
 					console.log("Could not retrieve")
 					return;
 				}
-				const userData = JSON.parse(userDataString)
-				console.log(userData.session.user.id)
-				const userId = (userData.session.user.id);
+				const userId = user.id;
 
 				// Create a group code
 				const groupCode = await Crypto.digestStringAsync(
@@ -117,15 +122,14 @@ export default function GroupsScreen() {
 
 		const joinGroup = async () => {
 			try {
-				const userDataString = await AsyncStorage.getItem('userData');
-				if (!userDataString) {
-				  console.log("Could not retrieve user data");
-				  return;
+
+				const {data: {user}}  = await supabase.auth.getUser();
+				if (user == null) {
+					console.log("Could not retrieve")
+					return;
 				}
-				
-				const userData = JSON.parse(userDataString);
-				const userId = userData?.session?.user?.id;
-			  
+				const userId = user.id;
+			
 				if (!userId) {
 				  console.log("User ID not found in user data");
 				  return;
