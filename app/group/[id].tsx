@@ -1,10 +1,9 @@
-
 import {  View, Share, Alert, TouchableOpacity } from "react-native";
 import { Modal, Button, ButtonIcon, ButtonText, 
     CloseIcon, FormControl, FormControlLabel, FormControlLabelText, 
     Heading, Icon, Input, InputField, ModalBackdrop, ModalBody, 
     ModalCloseButton, ModalContent, ModalFooter, ModalHeader, 
-    ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, Pressable, Box, ScrollView, useToast, Toast, ToastDescription, ToastTitle, CheckIcon } from "@gluestack-ui/themed";
+    ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, Pressable, Box, ScrollView, useToast, Toast, ToastDescription, ToastTitle, CheckIcon, Image } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
@@ -81,22 +80,16 @@ export default function GroupScreen() {
     const copyToClipboard = async () => {
       await Clipboard.setStringAsync(groupCode);
     };
-  
 
     return ( 
         <View className={styles.container}>
-          <ScrollView>
-          <Box width={"$full"} height={"$1/6"}>
-            
-          </Box>
+    <Text>
+              Group Name: {items.name}
+          </Text>
+          <Text>
+              Group Bio: {items.bio}
+          </Text>
 
-              <Text>
-                  Group Name: {items.name}
-              </Text>
-              <Text>
-                  Group Bio: {items.bio}
-              </Text>
-          </ScrollView>
         <Modal
 				isOpen={showShare}
 				onClose={() => {
@@ -106,7 +99,7 @@ export default function GroupScreen() {
 						<ModalBackdrop />
 						<ModalContent>
 						<ModalHeader>
-							<Heading size="lg">Share Group Code</Heading>
+							<Heading size="lg">Invite some friends! </Heading>
 							<ModalCloseButton>
 							<Icon as={CloseIcon} />
 							</ModalCloseButton>
@@ -170,5 +163,5 @@ export default function GroupScreen() {
 const styles = {
     container: `items-center flex-1 justify-center`,
     separator: `h-[1px] my-7 w-4/5 bg-gray-200`,
-    title: `text-xl font-bold`
+    title: `text-xl font-bold`,
 };

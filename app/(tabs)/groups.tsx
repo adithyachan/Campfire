@@ -3,13 +3,14 @@ import {Alert, ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon
 	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
 	Icon, ModalBody, CloseIcon, FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, 
 	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, 
-	Input, InputField, HStack, Fab, FabIcon, Box, Toast, ToastDescription, ToastTitle, useToast} from "@gluestack-ui/themed";
+	Input, InputField, HStack, Fab, FabIcon, Box, Toast, ToastDescription, ToastTitle, useToast, GlobeIcon, Menu, MenuItem, MenuItemLabel, SettingsIcon, Divider} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState, useEffect } from "react";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from 'expo-crypto';
+import { UsersRound } from 'lucide-react-native'
 
 export default function GroupsScreen() {
 		const [showCreate, setShowCreate] = useState(false)
@@ -23,7 +24,7 @@ export default function GroupsScreen() {
 		const [showGNE, setGNE] = useState(false)
 		const [showGCE, setGCE] = useState(false)
 		const [showModal, setShowModal] = useState(false)
-
+		const [selected, setSelected] = useState<Selection | null>(null);
 
 		useEffect(() => {
 
@@ -198,10 +199,30 @@ export default function GroupsScreen() {
 
 				</Center>
 			</ScrollView>
-					
-			<Fab size="lg" placement="bottom right" onPress={() => {setShowModal(true)}}>
-				<FabIcon as={AddIcon} size="sm" />
-			</Fab>
+		<Menu
+      placement="left bottom"
+      selectionMode="single"
+      closeOnSelect={true}
+	  borderRadius={"$xl"}
+	  mx={"$1"}
+
+      trigger={({ ...triggerProps }) => {
+        return (
+		<Fab size="lg" placement="bottom right" {...triggerProps}>
+			<FabIcon as={AddIcon} size="sm" />
+		</Fab>
+        )
+      }}
+    >
+      <MenuItem textValue="Create a group" onPress={() => setShowCreate(true)}>
+        <Icon as={AddIcon} size="sm" mr="$2" />
+        <MenuItemLabel size="sm">Create a group</MenuItemLabel>
+      </MenuItem>
+      <MenuItem textValue="Join a group" onPress={() => setShowJoin(true)}>
+        <Icon as={UsersRound} size="sm" mr="$2" />
+        <MenuItemLabel size="sm">Join a group</MenuItemLabel>
+      </MenuItem>
+    </Menu>
 			<Modal
 				isOpen={showCreate}
 				onClose={() => {
@@ -255,6 +276,7 @@ export default function GroupsScreen() {
 							<Input >
 								<InputField
 								type="text"
+								placeholder="For the campers"
 								value={groupBio}
 								onChangeText={text => setGroupBio(text)}
 								maxLength={300}
@@ -308,7 +330,7 @@ export default function GroupsScreen() {
 						<ModalBackdrop />
 						<ModalContent>
 						<ModalHeader>
-							<Heading size="lg">Join a group</Heading>
+							<Heading size="lg">Join a group	</Heading>
 							<ModalCloseButton>
 							<Icon as={CloseIcon} />
 							</ModalCloseButton>
