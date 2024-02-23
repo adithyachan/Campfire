@@ -10,8 +10,8 @@ const Register = () => {
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
 
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [phoneNumberError, setPhoneNumberError] = useState('')
+  const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState('')
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +23,7 @@ const Register = () => {
   const nameRegex = /^[A-Za-z]+$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/;
-  const phoneNumberRegex = /^(\d{3})(\d{3})(\d{4})$/;
+  const usernameRegex = /^[a-zA-Z0-9_]{5,11}$/;
 
   const getErrorMessage = (error: unknown) => {
     if (error instanceof Error) return error.message
@@ -34,10 +34,11 @@ const Register = () => {
     try {
       const { error: e2 } = await supabase
       .from('profiles')
-      .insert({ user_id: id, first_name: firstName, last_name: lastName, email: email, phone_number: phoneNumber })
+      .insert({ user_id: id, first_name: firstName, last_name: lastName, email: email, username: username })
       if (e2) {
         console.log(e2);
-        setPasswordError(e2.message)
+        setPasswordError(e2.message);
+        throw e2;
       }
       else {
         console.log("Successfully created new user profile entry")
@@ -77,21 +78,20 @@ const Register = () => {
     setLastNameError("");
   }
 
-  const handlePhoneNumberChanged = (phoneNumber: string) => {
-    setPhoneNumber(phoneNumber.replace(/\D/g, ''));
+  const handleUsernameChanged = (username: string) => {
+    setUsername(username.toLowerCase());
 
-    if (phoneNumber == "") {
-      setPhoneNumberError("");
+    if (username == "") {
+      setUsernameError("");
       return;
     }
 
-    if (!phoneNumberRegex.test(phoneNumber)) {
-      setPhoneNumberError("Invalid phone number");
+    if (!usernameRegex.test(username)) {
+      setUsernameError("Usernames must be alphanumeric with between 5-11 characters");
       return;
     }
 
-    setPhoneNumber(phoneNumber.replace(phoneNumberRegex, "($1) $2-$3"));
-    setPhoneNumberError("");
+    setUsernameError("");
   }
   
   const handleEmailChanged = (email: string) => {
@@ -130,7 +130,7 @@ const Register = () => {
   const handleRegister = async () => {
     // console.log(firstName);
     // console.log(lastName);
-    // console.log(phoneNumber);
+    // console.log(username);
     // console.log(email);
     // console.log(password);
 
@@ -138,7 +138,7 @@ const Register = () => {
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
-        phone: phoneNumber
+        phone: username
       });
       if (error) {
         setPasswordError(error.message);
@@ -203,14 +203,14 @@ const Register = () => {
           </FormControlErrorText>
         </FormControlError>
       </FormControl>
-      <FormControl w="$1/2" isInvalid={phoneNumberError != ""}>
-        <FormControlLabelText>Phone Number</FormControlLabelText>
+      <FormControl w="$1/2" isInvalid={usernameError != ""}>
+        <FormControlLabelText>Username</FormControlLabelText>
         <Input>
           <InputField
             type="text"
-            value={phoneNumber}
-            placeholder="123456789"
-            onChangeText={handlePhoneNumberChanged}
+            value={username}
+            placeholder="username"
+            onChangeText={handleUsernameChanged}
           />
         </Input>
         <FormControlError>
@@ -218,7 +218,7 @@ const Register = () => {
             as={AlertCircleIcon}
           />
           <FormControlErrorText>
-            { phoneNumberError }
+            { usernameError }
           </FormControlErrorText>
         </FormControlError>
       </FormControl>
@@ -271,7 +271,7 @@ const Register = () => {
         onPress={handleRegister}
         isDisabled={firstName == "" || 
         lastName == "" || 
-        phoneNumber == "" ||
+        username == "" ||
         email == "" ||
         password == ""}
       >
@@ -284,12 +284,12 @@ const Register = () => {
       >
         <ButtonText>Already have an account?</ButtonText>
       </Button>
-      <Button
+      {/* <Button
         variant='link'
         onPress={() => router.navigate("/auth/verify")}
       >
         <ButtonText>Verify</ButtonText>
-      </Button>
+      </Button> */}
     </VStack>
   );
 };

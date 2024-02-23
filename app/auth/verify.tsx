@@ -38,16 +38,15 @@ const Verify = () => {
   }
 
   const handleStart = () => {
-    console.log(seconds)
     timer.current = setInterval(() => {
-      if (seconds <= 1) {
+    setSeconds((prev) => {
+      if (prev <= 1) {
         clearInterval(timer.current);
-        setSeconds(timeout);
+        return timeout;
       }
-      else {
-        setSeconds((prev) => prev - 1);
-        console.log(seconds)
-      }
+      
+      return prev - 1;
+    });
     }, 1000);
   }
   
@@ -107,7 +106,7 @@ const Verify = () => {
       <Button w="$3/5" variant="link" disabled={ seconds < timeout } onPress={handleResend}>
           <ButtonText>{ seconds < timeout ? `Resend in ${seconds}s` : "Didn't get a link?"  }</ButtonText>
       </Button>
-      <Text fontSize="$xs">You can send an OTP every 5 minutes</Text>
+      <Text fontSize="$xs">You can resend an OTP every 60 seconds</Text>
     </VStack>
   );
 }
