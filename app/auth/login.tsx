@@ -62,7 +62,7 @@ const Login = () => {
             console.log(data);
             router.navigate({ 
               pathname: "auth/verify", 
-              params: { email: email } 
+              params: { email: email, type: "signup" } 
             });
           }
         }

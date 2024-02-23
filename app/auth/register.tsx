@@ -151,7 +151,7 @@ const Register = () => {
 
         router.navigate({
           pathname: "/auth/verify",
-          params: { email: email }
+          params: { email: email, type: "signup" }
         })
       }
     }

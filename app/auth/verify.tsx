@@ -14,6 +14,7 @@ const Verify = () => {
   const [codeError, setCodeError] = useState("");
   const params = useLocalSearchParams();
   const email = params.email as string ?? "example@email.mail";
+  const type = params.type as string ?? "";
 
   const [seconds, setSeconds] = useState(timeout);
   const timer = useRef<NodeJS.Timeout>();
@@ -25,15 +26,30 @@ const Verify = () => {
 
   const handleResend = async () => {
     handleStart();
-    const { data, error } = await supabase.auth.resend({ type: "signup", email: email })
 
-    if (error) {
-      setCodeError(error.message)
-      console.log(error)
-    } 
+    if (type == "signup") {
+      const { data, error } = await supabase.auth.resend({ type: "signup", email: email })
+
+      if (error) {
+        setCodeError(error.message)
+        console.log(error)
+      } 
+      else {
+        console.log("resent sucessfully")
+        console.log(data)
+      }
+    }
     else {
-      console.log("reset sucessfully")
-      console.log(data)
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email)
+
+      if (error) {
+        setCodeError(error.message)
+        console.log(error)
+      } 
+      else {
+        console.log("resent sucessfully")
+        console.log(data)
+      }
     }
   }
 
@@ -52,7 +68,7 @@ const Verify = () => {
   
   const verifyOTP = async () => {
     try {
-      const { data, error } = await supabase.auth.verifyOtp({ email: email, token: code, type: "email"})
+      const { data, error } = await supabase.auth.verifyOtp({ email: email, token: code, type: type == "signup" ? "email" : "recovery"})
       console.log(email)
       console.log(code)
 
@@ -63,7 +79,7 @@ const Verify = () => {
       else {
         console.log(data);
         await AsyncStorage.setItem('userData', JSON.stringify(data)); // Store data in AsyncStorage
-        router.replace("/(tabs)/home-feed");
+        router.replace(type == "signup" ? "/(tabs)/home-feed" : "/auth/resetpassword");
       }
     }
     catch (error) {

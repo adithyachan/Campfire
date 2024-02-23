@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AddIcon, AlertCircleIcon, Button, ButtonIcon, ButtonText, FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, HStack, Input, InputField, Text, VStack } from '@gluestack-ui/themed';
 import { supabase } from 'utils/supabase';
 import { router } from 'expo-router';
@@ -9,6 +9,11 @@ const ForgotPassword = () => {
   const [emailError, setEmailError] = useState('');
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const getErrorMessage = (error: unknown) => {
+    if (error instanceof Error) return error.message
+    return String(error)
+  }
 
   const handleEmailChanged = (email: string) => {
     email = email.toLowerCase();
@@ -29,7 +34,26 @@ const ForgotPassword = () => {
 
   const handleSendResetLink = async () => {
     console.log('handle sending reset password email');
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) {
+        console.log(error)
+        setEmailError(error.message);
+      } 
+      else {
+        console.log(data);
+        router.navigate({ 
+          pathname: "auth/verify",
+          params: { email: email, type: "recovery" } 
+        });
+      }
+    }
+    catch (error) {
+      console.log(error);
+      setEmailError(getErrorMessage(error));
+    }
   }
+
   return(
     <VStack w="$full" h="$full" space="xl" alignItems='center' justifyContent='center'>
       <Text bold fontSize="$2xl" size="xl">Password Reset</Text>
@@ -46,7 +70,7 @@ const ForgotPassword = () => {
           />
         </Input>
         <FormControlHelperText>
-          { 'If the email is associated with an account, check your inbox for a password reset link'}
+          { 'If the email is associated with an account, check your inbox for a password reset link.' }
         </FormControlHelperText>
         <FormControlError>
           <FormControlErrorIcon
@@ -62,10 +86,10 @@ const ForgotPassword = () => {
         w="$3/5"
         variant="solid"
         action="primary"
-        onPress={handleSendResetLink}
+        onPress={ handleSendResetLink }
         isDisabled={email == "" || emailError != ""}
       >
-        <ButtonText>Send Reset Link</ButtonText>
+        <ButtonText>{`Send Reset Link`}</ButtonText>
       </Button>
       <Button 
         variant='link'
