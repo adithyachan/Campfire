@@ -57,6 +57,7 @@ const Login = () => {
           const { data, error } = await supabase.auth.resend({ type: "signup", email: email })
           if (error) {
             console.log(error.message);
+            setPasswordError(error.message);
           }
           else {
             console.log(data);
