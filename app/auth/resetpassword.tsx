@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Alert } from 'react-native';
 import { AddIcon, AlertCircleIcon, Button, ButtonIcon, ButtonText, FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, HStack, Input, InputField, Text, VStack } from '@gluestack-ui/themed';
 import { supabase } from 'utils/supabase';
 import { router } from 'expo-router';
@@ -70,9 +71,9 @@ const ResetPassword = () => {
     }
     const { error } = await supabase.auth.signOut();
     await AsyncStorage.removeItem('userData');
-    router.navigate("/auth/login");
-
-    
+    Alert.alert("Success", "Your password has been reset successfully.", [
+      { text: "OK", onPress: () => router.navigate("/auth/login") }
+    ]);
   }
   return(
     <VStack w="$full" h="$full" space="xl" alignItems='center' justifyContent='center'>
