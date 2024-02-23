@@ -94,7 +94,7 @@ const Login = () => {
           </FormControlErrorText>
         </FormControlError>
       </FormControl>
-      <FormControl w="$1/2" size="md" isInvalid={ passwordError != "" }>
+      <FormControl w="$1/2" size="md" isInvalid={ passwordError != "auth/forgotpassword" }>
         <FormControlLabel mb='$1'>
           <FormControlLabelText>Password</FormControlLabelText>
         </FormControlLabel>
