@@ -21,6 +21,10 @@ export default function GroupScreen() {
 
     useEffect(() => {
 
+        if (items.first) {
+          alert('Welcome to ' + items.name);
+        }
+
         navigation.setOptions({ 
             headerTitle: items.name,
             headerBackTitle: 'Home',
@@ -91,9 +95,9 @@ export default function GroupScreen() {
             w={"$full"}
             h={"$1/2"}
   source={{
-    
     uri: "https://source.unsplash.com/f9bkzNQyylg"
   }}
+  alt="Image of Campfire"
 />
       <Box flexDirection="row" p={"$3"}>
         <VStack>

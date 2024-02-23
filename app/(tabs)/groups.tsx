@@ -3,7 +3,7 @@ import {Alert, ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon
 	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
 	Icon, ModalBody, CloseIcon, FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, 
 	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, 
-	Input, InputField, HStack, Fab, FabIcon, Box, Toast, ToastDescription, ToastTitle, useToast, GlobeIcon, Menu, MenuItem, MenuItemLabel, SettingsIcon, Divider} from "@gluestack-ui/themed";
+	Input, InputField, HStack, Fab, FabIcon, Box, Toast, ToastTitle, useToast, GlobeIcon, Menu, MenuItem, MenuItemLabel, SettingsIcon, Divider, ToastDescription} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
 import { useState, useEffect } from "react";
@@ -170,13 +170,14 @@ export default function GroupsScreen() {
 							}
 							setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
 						}
+
 						setShowJoin(false)
 						setGroupName("")
 						setGroupBio("")
 						setGroupCode("")
 						router.push({
 							pathname: "/group/[id]",
-							params: { id: groupId, name: groups![0].name, bio: groups![0].bio} 
+							params: { id: groupId, name: groups![0].name, bio: groups![0].bio, first: 1} 
 						});
 					}
 
