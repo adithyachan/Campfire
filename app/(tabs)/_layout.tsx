@@ -52,26 +52,25 @@ export default function TabLayout() {
         name="groups"
         options= {{
           title: "Groups", // Custom header title component
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="group" color={color} />,
         }}
       />
       <Tabs.Screen
         name="home-feed"
         options={{
           title: "Home Feed",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="fire" color={color} />,
         }}
       />
       <Tabs.Screen
         name="explore-feed"
         options={{
           title: "Explore Feed",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
         }}
       />
       <Tabs.Screen
         name="account"
-        
         options={{
           title: "Account",
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
