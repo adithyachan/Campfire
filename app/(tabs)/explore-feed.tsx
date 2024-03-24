@@ -10,102 +10,40 @@ export default function ExploreFeedScreen() {
 
 	const [clicked, setClicked] = useState(false);
 	const [searchPhrase, setSearchPhrase] = useState('');
-
+	const [userData, setUserData] = useState<{ user_id: string, first_name: string, last_name: string, username: string, bio: string, avatar_url: string }[]>([]);
+	const [groupData, setGroupData] = useState<{ group_id: string, name: string, bio: string }[]>([]);
 	useEffect(() => {
-		const getInitialUserData = async () => {
-			try {
-				const { data: profilesData, error: profilesError } = await supabase
-					.from('profiles')
-					.select('first_name, last_name, bio, username');
-				if (!profilesError) {
-					console.log('Profiles:', profilesData);
-				} else {
-					console.error('Error fetching profiles:', profilesError.message);
-				}
-			} catch (error) {
-				console.log(error)
-			}
-		}
-		getInitialUserData();
+		retrieveData();
 	}, []);
 
-	const DATA = [ 
-		{ 
-		id: "1", 
-		title: "Data Structures", 
-		},
-		
-		{ 
-		id: "2", 
-		title: "STL", 
-		}, 
-		{ 
-		id: "3", 
-		title: "C++", 
-		}, 
-		{ 
-		id: "4", 
-		title: "Java", 
-		}, 
-		{ 
-		id: "5", 
-		title: "Python", 
-		}, 
-		{ 
-		id: "6", 
-		title: "CP", 
-		}, 
-		{ 
-		id: "7", 
-		title: "ReactJs", 
-		}, 
-		{ 
-		id: "8", 
-		title: "NodeJs", 
-		}, 
-		{ 
-		id: "9", 
-		title: "MongoDb", 
-		}, 
-		{ 
-		id: "10", 
-		title: "ExpressJs", 
-		}, 
-		{ 
-		id: "11", 
-		title: "PHP", 
-		}, 
-		{ 
-		id: "12", 
-		title: "MySql", 
-		}, 
-		{ 
-			id: "13", 
-			title: "brhu", 
-		}, 
-		{ 
-			id: "14", 
-			title: "nruh1", 
-		}, 
-		{ 
-			id: "15", 
-			title: "adf", 
-		}, 
-		{ 
-			id: "16", 
-			title: "asdfa", 
-		}, 
-		{ 
-			id: "17", 
-			title: "asdfasf", 
-		}, 
-		{ 
-			id: "18", 
-			title: "asd", 
-		}, 
-		
-	]; 
-    
+	const retrieveData = async () => {
+		const {data: {user}}  = await supabase.auth.getUser();
+		if (user == null) {
+			console.log("Could not retrieve")
+			return;
+		}
+		const userId = user.id;
+
+		const { data: userData, error: userError } = await supabase
+			.from('profiles')
+			.select('user_id, first_name, last_name, username, bio, avatar_url')
+		if (userError) {
+			console.log(userError);
+		} else {
+			console.log(userData);
+		}
+		setUserData(userData as { user_id: string, first_name: string, last_name: string, username: string, bio: string, avatar_url: string }[]);
+		const { data: groupData, error: groupError } = await supabase
+		.from('groups')
+		.select('group_id, name, bio')
+		if (groupError) {
+			console.log(groupError);
+		} else {
+			console.log(groupData);
+		}
+		setGroupData(groupData as { group_id: string, name: string, bio: string }[]);		
+	}
+
 
 return (
 	<SafeAreaView style={styles.root}>
@@ -119,7 +57,8 @@ return (
 		<SearchList
 			searchPhrase={searchPhrase}
 			setClicked={setClicked}
-			data={DATA}
+			userData={userData}
+			groupData={groupData}
 		/>
 	</SafeAreaView>
 );

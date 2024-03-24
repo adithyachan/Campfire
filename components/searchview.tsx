@@ -1,18 +1,62 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
-  View,
   SafeAreaView,
+  Pressable,
 } from "react-native";
 import { Avatar, AvatarImage, Box, FlatList, HStack, VStack, Text } from "@gluestack-ui/themed";
+import { router } from "expo-router";
 
-const Item = ({ title, user }: { title: string, user: boolean }) => { 
+const Item = ({ id, first_name, last_name, username, bio, avatar_url, user }: 
+    { id: string, first_name: string, last_name: string, username: string, bio: string, avatar_url: string, user: boolean }) => { 
     return user ? 
     ( 
-        <>
-        </>
+        <Pressable>
+        <Box
+        borderBottomWidth="$1"
+        borderColor="$trueGray800"
+        $dark-borderColor="$trueGray100"
+        py="$2"
+        justifyContent="space-between"
+    >
+        <HStack>        
+        <Avatar size="md">
+            <AvatarImage   source={{
+                    uri: avatar_url
+                }}
+                alt="Image of Campfire" />
+        </Avatar> 
+        <VStack paddingLeft={10}>
+            <Text
+            color="$coolGray800"
+            fontWeight="$bold"
+            $dark-color="$warmGray100"
+            >
+                {username}
+            </Text>
+            <Text color="$coolGray600" $dark-color="$warmGray200">
+            {first_name} {last_name}
+            </Text>
+        </VStack>
+        <Text
+            fontSize="$xs"
+            color="$coolGray800"
+            $dark-color="$warmGray100"
+        >
+        </Text>
+        </HStack>
+    </Box>
+    </Pressable>
     ) 
     : ( 
+        <Pressable onPress={() => {
+            const name = username
+            console.log("GROUP ID", id, name, bio)
+            router.push({
+                pathname: "/group/[id]",
+                params: {id: id, name: name, bio: bio}
+            })
+        }}>
     <Box
             borderBottomWidth="$1"
             borderColor="$trueGray800"
@@ -23,7 +67,7 @@ const Item = ({ title, user }: { title: string, user: boolean }) => {
             <HStack>        
             <Avatar size="md">
                 <AvatarImage   source={{
-                        uri: "https://source.unsplash.com/f9bkzNQyylg"
+                        uri: avatar_url
                     }}
                     alt="Image of Campfire" />
             </Avatar> 
@@ -33,12 +77,10 @@ const Item = ({ title, user }: { title: string, user: boolean }) => {
                 fontWeight="$bold"
                 $dark-color="$warmGray100"
                 >
-                    {title}
-                {/* {item.fullName} */ }
+                    {username}
                 </Text>
                 <Text color="$coolGray600" $dark-color="$warmGray200">
-                Bruh 2
-                {/* {item.recentText} */}
+                {bio}
                 </Text>
             </VStack>
             <Text
@@ -46,30 +88,56 @@ const Item = ({ title, user }: { title: string, user: boolean }) => {
                 color="$coolGray800"
                 $dark-color="$warmGray100"
             >
-                {/* {item.timeStamp} */}
             </Text>
             </HStack>
         </Box>
+        </Pressable>
     ); 
 }; 
 
-export default function SearchList ({ searchPhrase, setClicked, data }: { searchPhrase: string, setClicked: (clicked: boolean) => void, data: any }) {
+export default function SearchList ({ searchPhrase, setClicked, userData, groupData }: { searchPhrase: string, setClicked: (clicked: boolean) => void, userData: any, groupData:any }) {
+
     const renderItem = ({ item }: { item: any }) => {
             // when no input, show all
             if (searchPhrase === "") {
-                return <Item title={item.title} user={false}  />;
+                return null;
             }
             // filter of the title
-            if (item.title.toUpperCase().includes(searchPhrase.toUpperCase().trim().replace(/\s/g, ""))) {
-                return <Item title={item.title} user={false} />;
+            else if (item.username && item.username.toUpperCase().includes(searchPhrase.toUpperCase().trim().replace(/\s/g, "")) ||
+            item.first_name && item.first_name.toUpperCase().includes(searchPhrase.toUpperCase().trim().replace(/\s/g, "")) ||
+            item.last_name && item.last_name.toUpperCase().includes(searchPhrase.toUpperCase().trim().replace(/\s/g, ""))) {
+                return <Item id={item.user_id} first_name={item.first_name} last_name={item.last_name} username={item.username} 
+                bio={item.bio} avatar_url={item.avatar_url} user={item.isUser}  />;
             }
-        };
+    };
+
+    console.log("USERDATA", userData)
+    const mappedUserData = userData.map((item: any) => ({
+        ...item,
+        isUser: true,
+        // add or modify properties here
+    }));
+
+    
+    const mappedGroupData = groupData.map((item: any) => ({
+        user_id: item.group_id,
+        first_name: '',
+        last_name: '',
+        username: item.name,
+        bio: item.bio,
+        avatar_url: 'default_group_avatar_url', // replace with your default group avatar URL
+        isUser: false
+    }));
+
+    
+    const combinedData = [...mappedGroupData, ...mappedUserData];
+    console.log("COMBINED", combinedData)
   return (
     <SafeAreaView style={styles.list__container}>
             <FlatList
-                data={data} 
+                data={combinedData} 
                 renderItem={({ item }) => renderItem({ item }) || null} 
-                keyExtractor={(item : any) => item.title} 
+                keyExtractor={(item : any) => item.username} 
             />
     </SafeAreaView>
   );

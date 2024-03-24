@@ -67,6 +67,7 @@ export default function SearchBar ({ clicked, searchPhrase, setSearchPhrase, set
             onPress={() => {
               Keyboard.dismiss();
               setClicked(false);
+              setSearchPhrase("");
             }}
           ></Button>
         </View>
