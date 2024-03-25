@@ -63,7 +63,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        
         name="explore-feed"
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,

@@ -1,4 +1,3 @@
-
 import { Pressable, TouchableOpacity, View } from "react-native";
 import { Card, Heading, Image, Text, Button } from "@gluestack-ui/themed";
 import { Link, router } from "expo-router";

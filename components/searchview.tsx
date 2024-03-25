@@ -6,12 +6,33 @@ import {
 } from "react-native";
 import { Avatar, AvatarImage, Box, FlatList, HStack, VStack, Text } from "@gluestack-ui/themed";
 import { router } from "expo-router";
+import { supabase } from "~/utils/supabase";
 
 const Item = ({ id, first_name, last_name, username, bio, avatar_url, user }: 
     { id: string, first_name: string, last_name: string, username: string, bio: string, avatar_url: string, user: boolean }) => { 
     return user ? 
     ( 
-        <Pressable>
+        <Pressable onPress={async () => {
+            console.log("USER ID", id)
+            const {data: {user}}  = await supabase.auth.getUser();
+            if (user == null) {
+              console.log("Could not retrieve")
+              return;
+            }
+            const userId = user.id;
+            if (id === userId) {
+                router.push({
+                    pathname: "/account"
+                })
+                return;
+            } else {
+                router.push({
+                    pathname: "/account/[id]",
+                    params: {id: id}
+                })
+                return;
+            }
+        }}>
         <Box
         borderBottomWidth="$1"
         borderColor="$trueGray800"
