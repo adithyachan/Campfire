@@ -1,24 +1,71 @@
-
-import { Text, View } from "react-native";
-
-
-import EditScreenInfo from "../../components/edit-screen-info";
+import { useEffect, useState } from "react";
+import { View, StyleSheet, FlatList, StatusBar } from "react-native";
+import SearchBar from "~/components/searchbar";
+import { Text } from "@gluestack-ui/themed";
+import SearchList from "~/components/searchview";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { supabase } from "~/utils/supabase";
 
 export default function ExploreFeedScreen() {
-    
-        return (
-			<View className={styles.container}>
-				<Text className={styles.title}>ExploreFeedScreen</Text>
-				<View className={styles.separator} />
-				<EditScreenInfo path="app/(tabs)/index.tsx" />
-			</View>
-		);
-    
+
+	const [clicked, setClicked] = useState(false);
+	const [searchPhrase, setSearchPhrase] = useState('');
+	const [userData, setUserData] = useState<{ user_id: string, first_name: string, last_name: string, username: string, bio: string, avatar_url: string }[]>([]);
+	const [groupData, setGroupData] = useState<{ group_id: string, name: string, bio: string }[]>([]);
+	useEffect(() => {
+		retrieveData();
+	}, []);
+
+	const retrieveData = async () => {
+		const {data: {user}}  = await supabase.auth.getUser();
+		if (user == null) {
+			console.log("Could not retrieve")
+			return;
+		}
+		const userId = user.id;
+
+		const { data: userData, error: userError } = await supabase
+			.from('profiles')
+			.select('user_id, first_name, last_name, username, bio, avatar_url')
+		if (userError) {
+			console.log(userError);
+		} else {
+			console.log(userData);
+		}
+		setUserData(userData as { user_id: string, first_name: string, last_name: string, username: string, bio: string, avatar_url: string }[]);
+		const { data: groupData, error: groupError } = await supabase
+		.from('groups')
+		.select('group_id, name, bio')
+		if (groupError) {
+			console.log(groupError);
+		} else {
+			console.log(groupData);
+		}
+		setGroupData(groupData as { group_id: string, name: string, bio: string }[]);		
+	}
+
+
+return (
+	<SafeAreaView style={styles.root}>
+		
+		<SearchBar
+			clicked={clicked}
+			searchPhrase={searchPhrase}
+			setSearchPhrase={setSearchPhrase}
+			setClicked={setClicked}
+		/>
+		<SearchList
+			searchPhrase={searchPhrase}
+			setClicked={setClicked}
+			userData={userData}
+			groupData={groupData}
+		/>
+	</SafeAreaView>
+);
 }
 
-
-    const styles = {
-		container: `items-center flex-1 justify-center`,
-		separator: `h-[1px] my-7 w-4/5 bg-gray-200`,
-		title: `text-xl font-bold`
-	};
+const styles = StyleSheet.create({
+	root: {
+		flex:1
+	  },
+});

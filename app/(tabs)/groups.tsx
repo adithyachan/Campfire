@@ -37,13 +37,13 @@ export default function GroupsScreen() {
 					// }
 					// const userData = JSON.parse(userDataString)
 					// const userId = (userData.session.user.id);
-
 					const {data: {user}}  = await supabase.auth.getUser();
 					if (user == null) {
 						console.log("Could not retrieve")
 						return;
 					}
 					const userId = user.id;
+
 
 					// query supabase for all the groups the user is a part of
 					const { data, error } = await supabase
@@ -171,6 +171,14 @@ export default function GroupsScreen() {
 							setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
 						}
 
+						// const { data: dataUpdate, error: errorUpdate } = await supabase.rpc('increment', {x: 1, id: userId});
+
+						// if (errorUpdate) {
+						// 	console.log("Failed to update num_groups:", errorUpdate.message);
+						// } else {
+						// 	console.log("num_groups updated successfully:", dataUpdate);
+						// }
+						
 						setShowJoin(false)
 						setGroupName("")
 						setGroupBio("")

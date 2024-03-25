@@ -16,25 +16,29 @@ export default function GroupScreen() {
     const items = useLocalSearchParams()
     const [showShare, setShowShare] = useState(false)
     const [groupCode, setGroupCode] = useState('')
+    const [isMember, setIsMember] = useState(false);
 
     console.log(items)
 
-    useEffect(() => {
 
+    useEffect(() => {
+        checkMembership();
+        console.log("MEMBER", isMember)
         if (items.first) {
           alert('Welcome to ' + items.name);
         }
 
         navigation.setOptions({ 
-            headerTitle: items.name,
-            headerBackTitle: 'Home',
-            headerRight: () => (
-                <Button variant="link" onPress={() => setShowShare(true)}>
-                    <ButtonIcon as={ShareIcon} />
-                </Button>
-            )
+          headerTitle: items.name,
+          headerBackTitle: 'Home',
+          headerRight: () => (
+              isMember ? (
+                  <Button variant="link" onPress={() => setShowShare(true)}>
+                      <ButtonIcon as={ShareIcon} />
+                  </Button>
+              ) : null
+          )
         });
-
         try {
           const getCode = async () => {
             try {
@@ -62,6 +66,29 @@ export default function GroupScreen() {
         }
 
     },[navigation, items])
+
+    const checkMembership = async () => {
+      const {data: {user}}  = await supabase.auth.getUser();
+      if (user == null) {
+        console.log("Could not retrieve")
+        return;
+      }
+      const userId = user.id;
+
+      const { data: membershipData, error: membershipError } = await supabase
+          .from('group_users')
+          .select('*')
+          .eq('profile_id', userId) // replace with the current user's id
+          .eq('group_id', items.id);
+
+      if (membershipError) {
+          console.log(membershipError);
+          return;
+      }
+
+      setIsMember(membershipData.length > 0);
+    };
+
 
     const ShareCode = async () => {
         try {
@@ -146,7 +173,7 @@ export default function GroupScreen() {
     </Card>
           </ScrollView>
 
-
+          {isMember && (
         <Modal
 				isOpen={showShare}
 				onClose={() => {
@@ -208,10 +235,8 @@ export default function GroupScreen() {
 						</ModalFooter>
 						</ModalContent>
 				</Modal>
+          )}
         
-
-
-
         </View>
     );
 }
