@@ -17,8 +17,14 @@ export default function GroupScreen() {
     const [showShare, setShowShare] = useState(false)
     const [groupCode, setGroupCode] = useState('')
     const [isMember, setIsMember] = useState(false);
+    const [leaveConfirmationVisible, setLeaveConfirmationVisible] = useState(false);
 
-    console.log(items)
+    // console.log(items)
+
+    const confirmLeaveGroup = () => {
+      // Show confirmation modal
+      setLeaveConfirmationVisible(true);
+    };
 
 
     useEffect(() => {
@@ -191,8 +197,8 @@ export default function GroupScreen() {
 
       {isMember && (
         <Box alignItems="center" justifyContent="center" my="$4">
-          <Button size="md" variant="solid" action="negative" onPress={unsubscribeFromGroup}>
-            <ButtonText>Unsubscribe</ButtonText>
+          <Button size="md" variant="solid" action="negative" onPress={confirmLeaveGroup}>
+            <ButtonText>Leave Group</ButtonText>
           </Button>
         </Box>
       )}
@@ -263,6 +269,35 @@ export default function GroupScreen() {
 						</ModalContent>
 				</Modal>
           )}
+
+        <Modal
+                isOpen={leaveConfirmationVisible}
+                onClose={() => setLeaveConfirmationVisible(false)}
+            >   
+            <ModalBackdrop/>
+                <ModalContent>
+                    <ModalHeader>
+                        <Heading size="lg">Leave Group</Heading>
+                        <ModalCloseButton onPress={() => setLeaveConfirmationVisible(false)}>
+                            <Icon as={CloseIcon} />
+                        </ModalCloseButton>
+                    </ModalHeader>
+                    <ModalBody>
+                        <Text>Are you sure you want to leave this group?</Text>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button style={{ marginRight: 8 }} onPress={() => setLeaveConfirmationVisible(false)}>
+                            <ButtonText>No</ButtonText>
+                        </Button>
+                        <Button action="negative" onPress={() => {
+                            unsubscribeFromGroup();
+                            setLeaveConfirmationVisible(false);
+                        }}>
+                            <ButtonText>Yes</ButtonText>
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         
         </View>
     );
