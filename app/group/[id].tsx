@@ -10,6 +10,7 @@ import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
 import * as Clipboard from 'expo-clipboard';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function GroupScreen() {
     const navigation = useNavigation();
@@ -128,6 +129,7 @@ export default function GroupScreen() {
           if (error) {
             console.error('Error unsubscribing from group:', error);
           } else {
+            await AsyncStorage.setItem('refreshGroups', 'true');
             router.navigate("groups");
           }
       }

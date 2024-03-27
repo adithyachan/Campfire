@@ -6,10 +6,12 @@ import {Alert, ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon
 	Input, InputField, HStack, Fab, FabIcon, Box, Toast, ToastTitle, useToast, GlobeIcon, Menu, MenuItem, MenuItemLabel, SettingsIcon, Divider, ToastDescription} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { router } from "expo-router";
 import * as Crypto from 'expo-crypto';
 import { UsersRound } from 'lucide-react-native'
+import { useFocusEffect } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function GroupsScreen() {
 		const [showCreate, setShowCreate] = useState(false)
@@ -25,50 +27,65 @@ export default function GroupsScreen() {
 		const [showModal, setShowModal] = useState(false)
 		const [selected, setSelected] = useState<Selection | null>(null);
 
-		useEffect(() => {
-
-			const getInitialGroupData = async () => {
-				try {
-					// Get user data from react async storage
-					// const userDataString = await AsyncStorage.getItem('userData')
-					// if (!userDataString) {
-					// 	console.log("Could not retrieve")
-					// 	return;
-					// }
-					// const userData = JSON.parse(userDataString)
-					// const userId = (userData.session.user.id);
-					const {data: {user}}  = await supabase.auth.getUser();
-					if (user == null) {
-						console.log("Could not retrieve")
-						return;
-					}
-					const userId = user.id;
-
-
-					// query supabase for all the groups the user is a part of
-					const { data, error } = await supabase
-					.from('group_users')
-					.select('*')
-					.eq('profile_id', userId);
-
-					// if query is successfull set the group cards to the groups
-					if (!error && data.length != 0) {
-						const groupIds = data.map((group: { group_id: any }) => group.group_id);
-						const { data: groupsData, error: groupsError } = await supabase
-							.from('groups')
-							.select('*')
-							.in('group_id', groupIds);
-							setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
-						if (!groupsError) {
-							console.log('Groups:', groupsData);
-						} else {
-							console.error('Error fetching groups:', groupsError.message);
-						}
-					}	
-				} catch (error) {
-					console.log(error)
+		const getInitialGroupData = async () => {
+			try {
+				// Get user data from react async storage
+				// const userDataString = await AsyncStorage.getItem('userData')
+				// if (!userDataString) {
+				// 	console.log("Could not retrieve")
+				// 	return;
+				// }
+				// const userData = JSON.parse(userDataString)
+				// const userId = (userData.session.user.id);
+				const {data: {user}}  = await supabase.auth.getUser();
+				if (user == null) {
+					console.log("Could not retrieve")
+					return;
 				}
+				const userId = user.id;
+
+
+				// query supabase for all the groups the user is a part of
+				const { data, error } = await supabase
+				.from('group_users')
+				.select('*')
+				.eq('profile_id', userId);
+
+				// if query is successfull set the group cards to the groups
+				if (!error && data.length != 0) {
+					const groupIds = data.map((group: { group_id: any }) => group.group_id);
+					const { data: groupsData, error: groupsError } = await supabase
+						.from('groups')
+						.select('*')
+						.in('group_id', groupIds);
+						setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
+					if (!groupsError) {
+						console.log('Groups:', groupsData);
+					} else {
+						console.error('Error fetching groups:', groupsError.message);
+					}
+				}	
+			} catch (error) {
+				console.log(error)
 			}
+		}
+
+		useFocusEffect(
+			React.useCallback(() => {
+			  const checkRefreshFlag = async () => {
+				const refreshNeeded = await AsyncStorage.getItem('refreshGroups');
+				if (refreshNeeded === 'true') {
+				  await AsyncStorage.removeItem('refreshGroups');
+				  setGroupData([]); 
+				  getInitialGroupData();
+				}
+			  };
+		  
+			  checkRefreshFlag();
+			}, [])
+		  );
+
+		useEffect(() => {
 			getInitialGroupData()
 		}, []);
 		  
