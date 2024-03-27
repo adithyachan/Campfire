@@ -6,7 +6,7 @@ import { Modal, Button, ButtonIcon, ButtonText,
     ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, 
     Pressable, Box, ScrollView, useToast, Toast, 
     ToastDescription, ToastTitle, CheckIcon, Image, Card, Avatar, AvatarFallbackText, AvatarImage, Divider, HStack } from "@gluestack-ui/themed";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
 import * as Clipboard from 'expo-clipboard';
@@ -110,6 +110,24 @@ export default function GroupScreen() {
         }
     };
 
+    const unsubscribeFromGroup = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+          console.log(user.id, items.id)
+          const { error } = await supabase
+              .from('group_users')
+              .delete()
+              .match({ profile_id: user.id, group_id: items.id });
+  
+          if (error) {
+            console.error('Error unsubscribing from group:', error);
+          } else {
+            router.navigate("groups");
+          }
+      }
+  };
+  
+
     const copyToClipboard = async () => {
       await Clipboard.setStringAsync(groupCode);
     };
@@ -170,6 +188,15 @@ export default function GroupScreen() {
         </HStack>
 
       </Box>
+
+      {isMember && (
+        <Box alignItems="center" justifyContent="center" my="$4">
+          <Button size="md" variant="solid" action="negative" onPress={unsubscribeFromGroup}>
+            <ButtonText>Unsubscribe</ButtonText>
+          </Button>
+        </Box>
+      )}
+
     </Card>
           </ScrollView>
 
