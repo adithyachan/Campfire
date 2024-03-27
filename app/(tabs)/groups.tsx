@@ -109,7 +109,7 @@ export default function GroupsScreen() {
 				);
 
 				// Insert a group using RPC
-				const { data, error } = await supabase.rpc('insert_groups', {group_name: groupName, group_bio: groupBio, group_code: groupCode, user_id: userId})
+				const { data, error } = await supabase.rpc('insert_groups', {group_name: groupName, group_bio: groupBio, group_code: groupCode, user_id: userId, admin: userId})
 				if (!error) {
 					const groupIds = data.map((group: { group_id: any; }) => group.group_id);
 					const { data: groupsData, error: groupsError } = await supabase
