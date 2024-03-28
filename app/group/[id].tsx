@@ -16,18 +16,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function GroupScreen() {
     const navigation = useNavigation();
     const items = useLocalSearchParams()
+    const [userId, setUserId] = useState('')
     const [showShare, setShowShare] = useState(false)
     const [showMembers, setShowMembers] = useState(false)
     const [groupMembers, setGroupMembers] = useState<{ user_id: string, first_name: string, last_name: string, username: string, bio: string, avatar_url: string }[]>([]);
-    const [groupData, setGroupData] = useState<{ group_id: string; name: string; bio: string; code: string; admin: string, num_members: number}>()
+    const [groupData, setGroupData] = useState<{ id: string; name: string; bio: string; code: string; admin: string, num_members: number}>()
     const [groupCode, setGroupCode] = useState('')
     const [isMember, setIsMember] = useState(false);
-    const [subscriptions, setSubscriptions] = useState<any>(null);
     const [leaveConfirmationVisible, setLeaveConfirmationVisible] = useState(false);
-    const [userId, setUserId] = useState<string>('')
-    const [loading1, setLoading1] = useState<boolean>(true)
-    const [loading2, setLoading2] = useState<boolean>(true)
-
 
 
     const confirmLeaveGroup = () => {
@@ -38,9 +34,7 @@ export default function GroupScreen() {
 
     useEffect(() => {
         checkMembership();
-        
-        // console.log("MEMBER", isMember)
-        // console.log("SUBSCRIBED", JSON.stringify(subscriptions))
+        console.log("MEMBER", isMember)
         if (items.first) {
           alert('Welcome to ' + items.name);
         }
@@ -68,7 +62,7 @@ export default function GroupScreen() {
               console.log(groupData)
               setGroupCode(groupData?.code)
 
-              setGroupData(groupData as { group_id: string; name: string; bio: string; code: string; admin: string, num_members: number});
+              setGroupData(groupData as { id: string; name: string; bio: string; code: string; admin: string, num_members: number});
             
               if (!groupCode) {
                 throw new Error('Group code not found.');
@@ -114,20 +108,18 @@ export default function GroupScreen() {
 
     },[navigation, items])
 
-    useEffect(() => {
-      checkSubscribed();
-    }, [])
-
     const checkMembership = async () => {
       const {data: {user}}  = await supabase.auth.getUser();
       if (user == null) {
         console.log("Could not retrieve")
         return;
       }
+      const userId = user.id;
+      setUserId(userId);
       const { data: membershipData, error: membershipError } = await supabase
           .from('group_users')
           .select('*')
-          .eq('profile_id', user.id) // replace with the current user's id
+          .eq('profile_id', userId) // replace with the current user's id
           .eq('group_id', items.id);
 
       if (membershipError) {
@@ -136,101 +128,8 @@ export default function GroupScreen() {
       }
 
       setIsMember(membershipData.length > 0);
-      setLoading1(false)
     };
 
-    const checkSubscribed = async () => {
-      const {data: {user}} = await supabase.auth.getUser()
-      if (user == null) {
-        console.log("Could not retrieve")
-        return;
-      }
-      const {data: subscriptionData, error: subscriptionError } = await supabase
-        .from('profiles')
-        .select('subscriptions')
-        .eq('user_id', user.id)
-      
-      if (subscriptionError) {
-        console.log(subscriptionError)
-      }
-
-      let subs: string[] = (subscriptionData![0].subscriptions as string[]);
-
-      if (subs === null || typeof subs === 'undefined') {
-        subs = []
-      }
-      console.log(`subscription 0: ${JSON.stringify(subs)}`)
-      setSubscriptions(subs)
-      setUserId(user.id)
-      setLoading2(false)
-    }
-
-    const handleSubscribe = async() => {
-      console.log(`PUSHING ${items.id} TO NEWSUBS`)
-      let newSubs = [...subscriptions, items.id]
-      setSubscriptions(newSubs)
-      const { error } = await supabase
-        .from('profiles')
-        .update({subscriptions: newSubs})
-        .eq('user_id', userId)
-      
-      if (error) {
-        console.log('error updating subscriptions during subscribe')
-      }
-    }
-
-
-    const handleUnsubscribe = async () => {
-      console.log(`current subscription array: ${JSON.stringify(subscriptions)}`)
-      console.log(`trying to remove: ${items.id}`)
-      let newSubs = subscriptions.filter((sub: string) => sub !== items.id)
-      console.log(`result: ${JSON.stringify(newSubs)}`)
-      await setSubscriptions(newSubs)
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({subscriptions: newSubs})
-        .eq('user_id', userId)
-      
-      if (error) {
-        console.log('error updating subscriptions during subscribe')
-      }
-      
-      // console.log(`current subscription array 2: ${JSON.stringify(subscriptions)}`)
-      
-    }
-    
-
-    const GroupActionButton = () => {
-      
-      console.log(`SUBSCRIPTIONS: ${JSON.stringify(subscriptions)}`)
-      if (isMember) { // case user is a member of this group already
-        return(
-          <Box alignItems="center" justifyContent="center" my="$4">
-            <Button size="md" variant="solid" action="negative" onPress={confirmLeaveGroup}>
-              <ButtonText>Leave Group</ButtonText>
-            </Button>
-          </Box>
-        )
-      }
-      
-      else if (subscriptions.length !== 0 && subscriptions.includes(items.id)) { // case visiting user is subscribed
-        return(
-          <Box alignItems="center" justifyContent="center" my="$4">
-            <Button size="md" variant="solid" action="negative" onPress={handleUnsubscribe}>
-              <ButtonText>Unsubscribe</ButtonText>
-            </Button>
-          </Box>)
-      
-      } else { // case visiting user is not subscribed
-        return(
-          <Box alignItems="center" justifyContent="center" my="$4">
-            <Button alignItems="center" w="$1/3" size="md" variant="solid" action="primary" onPress={handleSubscribe}>
-              <ButtonText>Subscribe</ButtonText>
-            </Button>
-          </Box>)
-      }
-    }
 
     const ShareCode = async () => {
         try {
@@ -252,7 +151,7 @@ export default function GroupScreen() {
         }
     };
 
-    const handleLeaveGroup = async () => {
+    const unsubscribeFromGroup = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
           console.log(user.id, items.id)
@@ -275,9 +174,6 @@ export default function GroupScreen() {
       await Clipboard.setStringAsync(groupCode);
     };
 
-    if (loading1 || loading2) {
-      return <Text>Loading...</Text>
-    }
     return ( 
         <View className={styles.container}>
           <ScrollView width={"$full"}>
@@ -339,7 +235,13 @@ export default function GroupScreen() {
 
       </Box>
 
-      <GroupActionButton />
+      {isMember && (
+        <Box alignItems="center" justifyContent="center" my="$4">
+          <Button size="md" variant="solid" action="negative" onPress={confirmLeaveGroup}>
+            <ButtonText>Leave Group</ButtonText>
+          </Button>
+        </Box>
+      )}
 
     </Card>
           </ScrollView>
@@ -529,7 +431,7 @@ export default function GroupScreen() {
                             <ButtonText>No</ButtonText>
                         </Button>
                         <Button action="negative" onPress={() => {
-                            handleLeaveGroup();
+                            unsubscribeFromGroup();
                             setLeaveConfirmationVisible(false);
                         }}>
                             <ButtonText>Yes</ButtonText>
