@@ -12,6 +12,7 @@ import * as Crypto from 'expo-crypto';
 import { UsersRound } from 'lucide-react-native'
 import { useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { err } from "react-native-svg/lib/typescript/xml";
 
 export default function GroupsScreen() {
 		const [showCreate, setShowCreate] = useState(false)
@@ -91,15 +92,15 @@ export default function GroupsScreen() {
 		  
 
 		const createGroup = async () => {
+			console.log("Creating group")
 			try {
-				// Get user data from react async storage
-
 				const {data: {user}}  = await supabase.auth.getUser();
 				if (user == null) {
 					console.log("Could not retrieve")
 					return;
 				}
 				const userId = user.id;
+				console.log("ID: ", userId)
 
 				// Create a group code
 				const groupCode = await Crypto.digestStringAsync(
@@ -108,8 +109,11 @@ export default function GroupsScreen() {
 					{ encoding: Crypto.CryptoEncoding.BASE64 }
 				);
 
+				console.log("Group Code: ", groupCode)
+
 				// Insert a group using RPC
 				const { data, error } = await supabase.rpc('insert_groups', {group_name: groupName, group_bio: groupBio, group_code: groupCode, user_id: userId, admin: userId})
+				console.log(data, error)
 				if (!error) {
 					const groupIds = data.map((group: { group_id: any; }) => group.group_id);
 					const { data: groupsData, error: groupsError } = await supabase

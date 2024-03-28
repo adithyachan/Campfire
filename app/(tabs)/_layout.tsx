@@ -3,8 +3,6 @@ import { Tabs } from "expo-router";
 import { StyleSheet } from "react-native";
 import React from "react";
 
-
-
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;

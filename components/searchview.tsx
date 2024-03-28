@@ -4,7 +4,7 @@ import {
   SafeAreaView,
   Pressable,
 } from "react-native";
-import { Avatar, AvatarImage, Box, FlatList, HStack, VStack, Text } from "@gluestack-ui/themed";
+import { Avatar, AvatarImage, Box, FlatList, HStack, VStack, Text, AvatarFallbackText } from "@gluestack-ui/themed";
 import { router } from "expo-router";
 import { supabase } from "~/utils/supabase";
 
@@ -42,11 +42,12 @@ const Item = ({ id, first_name, last_name, username, bio, avatar_url, user }:
     >
         <HStack>        
         <Avatar size="md">
-            <AvatarImage   source={{
-                    uri: avatar_url
-                }}
-                alt="Image of Campfire" />
-        </Avatar> 
+            {avatar_url ? (
+          <AvatarImage source={{ uri: avatar_url }} alt="Profile picture"/>
+        ) : (
+          <AvatarFallbackText>{`${first_name} ${last_name}`}</AvatarFallbackText>
+        )}
+            </Avatar> 
         <VStack paddingLeft={10}>
             <Text
             color="$coolGray800"
@@ -87,11 +88,13 @@ const Item = ({ id, first_name, last_name, username, bio, avatar_url, user }:
         >
             <HStack>        
             <Avatar size="md">
-                <AvatarImage   source={{
-                        uri: avatar_url
-                    }}
-                    alt="Image of Campfire" />
-            </Avatar> 
+            <AvatarImage
+                source={{
+                    uri: avatar_url ? avatar_url : "https://source.unsplash.com/BdTtvBRhOng"
+                }}
+                alt="https://source.unsplash.com/BdTtvBRhOng"
+            />
+        </Avatar>
             <VStack paddingLeft={10}>
                 <Text
                 color="$coolGray800"
@@ -116,7 +119,7 @@ const Item = ({ id, first_name, last_name, username, bio, avatar_url, user }:
     ); 
 }; 
 
-export default function SearchList ({ searchPhrase, setClicked, userData, groupData }: { searchPhrase: string, setClicked: (clicked: boolean) => void, userData: any, groupData:any }) {
+export default function SearchList ({ searchPhrase, setClicked, activeButton, setActiveButton, userData, groupData }: { searchPhrase: string, activeButton: string, setActiveButton: (clicked: string) => void,  setClicked: (clicked: boolean) => void, userData: any, groupData:any }) {
 
     const renderItem = ({ item }: { item: any }) => {
             // when no input, show all
@@ -156,7 +159,7 @@ export default function SearchList ({ searchPhrase, setClicked, userData, groupD
   return (
     <SafeAreaView style={styles.list__container}>
             <FlatList
-                data={combinedData} 
+                data={activeButton === "users" ? mappedUserData : mappedGroupData} 
                 renderItem={({ item }) => renderItem({ item }) || null} 
                 keyExtractor={(item : any) => item.username} 
             />
