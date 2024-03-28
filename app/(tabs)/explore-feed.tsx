@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { View, StyleSheet, FlatList, StatusBar } from "react-native";
 import SearchBar from "~/components/searchbar";
-import { Text } from "@gluestack-ui/themed";
+import { Divider, HStack, Text, Button } from "@gluestack-ui/themed";
 import SearchList from "~/components/searchview";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "~/utils/supabase";
@@ -10,6 +10,7 @@ export default function ExploreFeedScreen() {
 
 	const [clicked, setClicked] = useState(false);
 	const [searchPhrase, setSearchPhrase] = useState('');
+	const [activeButton, setActiveButton] = useState('users');
 	const [userData, setUserData] = useState<{ user_id: string, first_name: string, last_name: string, username: string, bio: string, avatar_url: string }[]>([]);
 	const [groupData, setGroupData] = useState<{ group_id: string, name: string, bio: string }[]>([]);
 	useEffect(() => {
@@ -53,12 +54,16 @@ return (
 			searchPhrase={searchPhrase}
 			setSearchPhrase={setSearchPhrase}
 			setClicked={setClicked}
+			activeButton={activeButton}
+			setActiveButton={setActiveButton}
 		/>
 		<SearchList
 			searchPhrase={searchPhrase}
 			setClicked={setClicked}
 			userData={userData}
 			groupData={groupData}
+			activeButton={activeButton}
+			setActiveButton={setActiveButton}
 		/>
 	</SafeAreaView>
 );
