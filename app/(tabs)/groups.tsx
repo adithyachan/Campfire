@@ -126,6 +126,14 @@ export default function GroupsScreen() {
 					} else {
 						console.error('Error fetching groups:', groupsError.message);
 					}
+					const { data: dataUpdate, error: errorUpdate } = await supabase.rpc('increment_user_group_count', {x: 1, id: userId});
+
+					if (errorUpdate) {
+						console.log("Failed to update num_groups:", errorUpdate.message);
+					} else {
+						console.log("num_groups updated successfully:", dataUpdate);
+					}
+
 					setShowCreate(false)
 					setGroupName("")
 					setGroupBio("")
@@ -192,14 +200,22 @@ export default function GroupsScreen() {
 							setGroupData(groupsData as { group_id: string, name: string, bio: string }[]);
 						}
 
-						// const { data: dataUpdate, error: errorUpdate } = await supabase.rpc('increment', {x: 1, id: userId});
+						const { data: dataUpdate, error: errorUpdate } = await supabase.rpc('increment_user_group_count', {x: 1, id: userId});
 
-						// if (errorUpdate) {
-						// 	console.log("Failed to update num_groups:", errorUpdate.message);
-						// } else {
-						// 	console.log("num_groups updated successfully:", dataUpdate);
-						// }
+						if (errorUpdate) {
+							console.log("Failed to update num_groups:", errorUpdate.message);
+						} else {
+							console.log("num_groups updated successfully:", dataUpdate);
+						}
 						
+						const { data: dU, error: eU } = await supabase.rpc('increment_group_member_count', {x: 1, id: groupId});
+
+						if (eU) {
+							console.log("Failed to update num_groups:", eU.message);
+						} else {
+							console.log("num_groups updated successfully:", dU);
+						}
+
 						setShowJoin(false)
 						setGroupName("")
 						setGroupBio("")

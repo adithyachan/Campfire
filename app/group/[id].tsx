@@ -12,15 +12,16 @@ import { supabase } from "~/utils/supabase";
 import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+
 export default function GroupScreen() {
     const navigation = useNavigation();
     const items = useLocalSearchParams()
     const [showShare, setShowShare] = useState(false)
+    const [groupData, setGroupData] = useState<{ id: string; name: string; bio: string; code: string; admin: string, num_members: number}>()
     const [groupCode, setGroupCode] = useState('')
     const [isMember, setIsMember] = useState(false);
     const [leaveConfirmationVisible, setLeaveConfirmationVisible] = useState(false);
 
-    // console.log(items)
 
     const confirmLeaveGroup = () => {
       // Show confirmation modal
@@ -51,11 +52,14 @@ export default function GroupScreen() {
             try {
               const { data: groupData, error: errorCode } = await supabase
               .from('groups')
-              .select('code')
-              .eq('group_id', items.id);
+              .select('*')
+              .eq('group_id', items.id)
+              .single();
           
               console.log(groupData)
-              setGroupCode(groupData?.[0]?.code)
+              setGroupCode(groupData?.code)
+
+              setGroupData(groupData as { id: string; name: string; bio: string; code: string; admin: string, num_members: number});
             
               if (!groupCode) {
                 throw new Error('Group code not found.');
@@ -173,7 +177,7 @@ export default function GroupScreen() {
           alignItems="center"
         >
           <Heading size="xs" fontFamily="$heading">
-            10
+            0
           </Heading>
           <Text size="xs">posts</Text>
         </VStack>
@@ -181,7 +185,7 @@ export default function GroupScreen() {
           alignItems="center"
         >
           <Heading size="xs" fontFamily="$heading">
-            200
+            0
           </Heading>
           <Text size="xs">followers</Text>
         </VStack>
@@ -189,7 +193,7 @@ export default function GroupScreen() {
           alignItems="center"
         >
           <Heading size="xs" fontFamily="$heading">
-            12
+            {groupData?.num_members}
           </Heading>
           <Text size="xs">Members</Text>
       </VStack>
