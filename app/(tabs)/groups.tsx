@@ -12,7 +12,6 @@ import * as Crypto from 'expo-crypto';
 import { UsersRound } from 'lucide-react-native'
 import { useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { err } from "react-native-svg/lib/typescript/xml";
 
 export default function GroupsScreen() {
 		const [showCreate, setShowCreate] = useState(false)
