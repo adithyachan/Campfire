@@ -1,5 +1,5 @@
-import { Modal, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, Icon, CloseIcon, ModalBody, VStack, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, InputSlot, InputIcon, ModalFooter, ButtonText, Button } from "@gluestack-ui/themed"
-import { Heading, CopyIcon } from "lucide-react-native"
+import { Heading, Text, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, Icon, CloseIcon, ModalBody, VStack, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, InputSlot, InputIcon, ModalFooter, ButtonText, Button } from "@gluestack-ui/themed"
+import {  CopyIcon } from "lucide-react-native"
 import { Alert, Share, TouchableOpacity } from "react-native"
 import * as Clipboard from 'expo-clipboard'
 
@@ -31,7 +31,9 @@ export default function ShareGroupModal(props: { isOpen: boolean, onClose: () =>
       <ModalBackdrop />
       <ModalContent>
         <ModalHeader>
-          <Heading size="lg">Invite some friends! </Heading>
+          <Heading size="lg">
+              Invite some friends!
+            </Heading>
           <ModalCloseButton>
             <Icon as={CloseIcon} />
           </ModalCloseButton>
