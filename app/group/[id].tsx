@@ -214,9 +214,9 @@ export default function GroupScreen() {
       .match({ profile_id: userId, group_id: groupID });
       
       const { data: dU, error: eU } = await supabase.rpc('increment_group_member_count', {x: -1, id: groupID});
-
-      if (eU) {
-        console.log("Failed to update num_groups:", eU.message);
+      const { data: aU, error: bU } = await supabase.rpc('increment_user_group_count', {x: -1, id: groupID});
+      if (eU || bU) {
+        console.log("Failed to update num_groups:");
       } else {
         console.log("num_groups updated successfully:", dU);
       }
@@ -382,13 +382,15 @@ export default function GroupScreen() {
             if (error) throw error;
 
             const { data: dU, error: eU } = await supabase.rpc('increment_group_member_count', {x: 1, id: groupID});
-
-						if (eU) {
-							console.log("Failed to update num_groups:", eU.message);
+            const { data: aU, error: bU } = await supabase.rpc('increment_user_group_count', {x: 1, id: groupID});
+						if (eU || bU) {
+							console.log("Failed to update num_groups:");
 						} else {
 							console.log("num_groups updated successfully:", dU);
 						}
-  
+
+
+
             setIsMember(true);
             checkMembership();
             await AsyncStorage.setItem('refreshGroups', 'true');
