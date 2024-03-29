@@ -278,7 +278,7 @@ export default function PostCard(props: { postData: { post_id: string, user_id: 
                 <ScrollView>
                   <VStack>
                     { comments?.map((c) => 
-                      <Box flexDirection="row" justifyContent="space-between" alignItems="center">
+                      <Box flexDirection="row" justifyContent="space-between" alignItems="center" key={ c.id }>
                         <HStack mt="$3" alignItems="center">
                           <Heading size="sm">{ `${c.username} ~ ` }</Heading>
                           <Text size="sm">{ c.comment_text }</Text>
