@@ -557,7 +557,7 @@ export default function GroupScreen() {
       headerTitle: routeParams.name,
       headerBackTitle: 'Home',
       headerRight: () => (
-        isMember ? shareButton : null
+        shareButton
       )
     });
   }
@@ -590,7 +590,7 @@ export default function GroupScreen() {
             <Box h="$full">
               <GroupPageHeader />
               { isMember && groupPosts && <GroupPostCards /> }
-              { isMember && 
+              { isMember && !isGroupPublic &&
                 <ShareGroupModal 
                   isOpen={ showShare } 
                   onClose={ () => 
