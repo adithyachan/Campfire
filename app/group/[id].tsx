@@ -169,12 +169,16 @@ export default function GroupScreen() {
       console.log(`PUSHING ${items.id} TO NEWSUBS`)
       let newSubs = [...subscriptions, items.id]
       setSubscriptions(newSubs)
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({subscriptions: newSubs})
         .eq('user_id', userId)
       
-      if (error) {
+      const { error: profileSubscriptionsError } = await supabase
+        .from('profile_subscriptions')
+        .insert({profile_id: userId, group_id: items.id})
+
+      if (profileError || profileSubscriptionsError) {
         console.log('error updating subscriptions during subscribe')
       }
     }
@@ -187,12 +191,18 @@ export default function GroupScreen() {
       console.log(`result: ${JSON.stringify(newSubs)}`)
       await setSubscriptions(newSubs)
 
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({subscriptions: newSubs})
         .eq('user_id', userId)
       
-      if (error) {
+      const { error: profileSubscriptionsError } = await supabase
+        .from('profile_subscriptions')
+        .delete()
+        .eq('profile_id', userId)
+        .eq('group_id', items.id)
+
+      if (profileError || profileSubscriptionsError) {
         console.log('error updating subscriptions during subscribe')
       }
       
