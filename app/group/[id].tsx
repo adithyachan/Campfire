@@ -29,11 +29,12 @@ export default function GroupScreen() {
   const [groupCode, setGroupCode] = useState('')
   const [isMember, setIsMember] = useState(false);
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
+  const [subcriptionData, setSubscriptionData] = useState<string[]>([]);
   const [leaveConfirmationVisible, setLeaveConfirmationVisible] = useState(false);
   const [userId, setUserId] = useState<string>('')
   const [loading1, setLoading1] = useState<boolean>(true)
   const [loading2, setLoading2] = useState<boolean>(true)
-  const [groupPosts, setGroupPosts] = useState<any[] | undefined>(undefined);
+  const [groupPosts, setGroupPosts] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
 
 
@@ -113,32 +114,53 @@ export default function GroupScreen() {
       if (groupMembers.length === 0) {
         getMembers()
       }
-
-      const getPosts = async () => {
-        const { data: postData, error: postError } = await supabase
-          .from("posts")
-          .select("*")
-          .eq("group_id", groupData?.group_id)
-
-        if (postError) {
-          throw new Error(postError.message)
-        }
-
-        setGroupPosts(postData!)
-      }
-
-      if (groupPosts == undefined) {
-        getPosts();
-      }
-
     } catch (error) {
 
     }
 
   }, [navigation, items])
 
+  const getPosts = async () => {
+    try {
+      const { data: postData, error: postError } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("group_id", groupData?.group_id)
+
+      if (postError) {
+        throw new Error(postError.message)
+      }
+
+      setGroupPosts(postData!)
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
+  const getSubscribers = async () => {
+    try {
+      const { data: subData, error: subError } = await supabase
+        .from("profile_subscriptions")
+        .select("profile_id")
+        .eq("group_id", groupData?.group_id)
+
+      if (subError) {
+        throw new Error(subError.message)
+      }
+
+      console.log(subData.map((p) => p.profile_id))
+      setSubscriptionData(subData.map((p) => p.profile_id))
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
   useEffect(() => {
     checkSubscribed();
+    getPosts();
+    getSubscribers();
   }, [])
 
   const checkMembership = async () => {
@@ -344,7 +366,7 @@ export default function GroupScreen() {
                 alignItems="center"
               >
                 <Heading size="xs" fontFamily="$heading">
-                  { subscriptions.length }
+                  { subcriptionData.length }
                 </Heading>
                 <Text size="xs">followers</Text>
               </VStack>
