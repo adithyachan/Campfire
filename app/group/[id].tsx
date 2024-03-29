@@ -393,7 +393,8 @@ export default function GroupScreen() {
 
 
             setIsMember(true);
-            checkMembership();
+            await checkMembership();
+            await getMembers();
             await AsyncStorage.setItem('refreshGroups', 'true');
           } catch (error) {
             console.error('Error joining group:', error);
