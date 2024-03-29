@@ -7,7 +7,7 @@ export default function PostCard(props: { postData: { post_id: string, user_id: 
         <HStack>
           <Text>{ props.postData.created_at }</Text>
         </HStack>
-        <Image size="2xl" source={{ uri: props.postData.media_url }} />
+        <Image alt="post image" size="2xl" source={{ uri: props.postData.media_url }} />
         <Box>
           <Text>{ props.postData.post_caption }</Text>
         </Box>

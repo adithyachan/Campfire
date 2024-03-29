@@ -30,7 +30,6 @@ export default function GroupScreen() {
   const [isMember, setIsMember] = useState(false);
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
   const [leaveConfirmationVisible, setLeaveConfirmationVisible] = useState(false);
-    const [showCreate, setShowCreate] = useState(false);
   const [userId, setUserId] = useState<string>('')
   const [loading1, setLoading1] = useState<boolean>(true)
   const [loading2, setLoading2] = useState<boolean>(true)
@@ -372,7 +371,7 @@ export default function GroupScreen() {
                 <PostCard postData={ post } />
               ) : null
             }
-          <Box/>
+          </Box>
         : null }
       </ScrollView>
 
