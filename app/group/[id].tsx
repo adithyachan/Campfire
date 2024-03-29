@@ -3,8 +3,7 @@ import {
   Heading, ShareIcon, Text, VStack, 
   Pressable, Box, ScrollView, 
   Image, Card, HStack, Fab, FabIcon, FabLabel,
-  AddIcon,
-  Spinner
+  AddIcon,Spinner
 } from "@gluestack-ui/themed";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
@@ -293,10 +292,10 @@ export default function GroupScreen() {
 
   const GroupPageHeader = () => {
     return (
-      <Card width={"$full"} size="lg" variant="ghost" p={"$0"} >
+      <Card width="$full" variant="ghost" p="$0" pb="$10">
         <Image
-          w={"$full"}
-          h={"$1/2"}
+          w="$full"
+          h="$40"
           source={{
             uri: "https://source.unsplash.com/f9bkzNQyylg"
           }}
@@ -314,7 +313,7 @@ export default function GroupScreen() {
           <GroupActionButton />
         </Box>
         <Box
-          my="$3"
+          mt="$3"
           sx={{
             flexDirection: "row",
           }}
@@ -420,43 +419,45 @@ export default function GroupScreen() {
       loadingMemberList || 
       loadingPosts ||
       loadingSubscribers) ? loadingSpinner : 
-      <Box h="$full">
-        <ScrollView>
-          <GroupPageHeader />
-          { isMember && groupPosts && <GroupPostCards /> }
-          { isMember && 
-            <ShareGroupModal 
-              isOpen={ showShare } 
-              onClose={ () => 
-                setShowShare(false)
-              } 
-              groupCode={ groupCode }
-            /> 
-          }
-          <ShowMembersModal 
-            isOpen={ showMembers } 
-            onClose={ () => 
-              setShowMembers(false) 
-            } 
-            groupMembers={ groupMembers } 
-          />
-          <LeaveGroupModal 
-            isOpen={ leaveConfirmationVisible }
-            onClose={ () => 
-              setLeaveConfirmationVisible(false)
-            }
-            handleLeaveGroup={ handleLeaveGroup }
-          />
-          <CreatePostModal 
-            isOpen={showCreate} 
-            onClose={() => { 
-              setShowCreate(false) 
-            }} 
-            groupID={ groupID as string } 
-          />
-        </ScrollView>
-        {isMember && <CreatePostFAB />}
-      </Box>
+        <Box>
+          <ScrollView>
+            <Box h="$full">
+              <GroupPageHeader />
+              { isMember && groupPosts && <GroupPostCards /> }
+              { isMember && 
+                <ShareGroupModal 
+                  isOpen={ showShare } 
+                  onClose={ () => 
+                    setShowShare(false)
+                  } 
+                  groupCode={ groupCode }
+                /> 
+              }
+              <ShowMembersModal 
+                isOpen={ showMembers } 
+                onClose={ () => 
+                  setShowMembers(false) 
+                } 
+                groupMembers={ groupMembers } 
+              />
+              <LeaveGroupModal 
+                isOpen={ leaveConfirmationVisible }
+                onClose={ () => 
+                  setLeaveConfirmationVisible(false)
+                }
+                handleLeaveGroup={ handleLeaveGroup }
+              />
+              <CreatePostModal 
+                isOpen={showCreate} 
+                onClose={() => { 
+                  setShowCreate(false) 
+                }} 
+                groupID={ groupID as string } 
+              />
+            </Box>
+          </ScrollView>
+          {isMember && <CreatePostFAB />}
+        </Box>
       }
     </>
   );
