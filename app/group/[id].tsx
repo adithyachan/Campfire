@@ -628,7 +628,8 @@ export default function GroupScreen() {
               <CreatePostModal 
                 isOpen={showCreate} 
                 onClose={() => { 
-                  setShowCreate(false) 
+                  setShowCreate(false)
+                  getPosts() 
                 }} 
                 groupID={ groupID as string } 
               />

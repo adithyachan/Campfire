@@ -152,7 +152,7 @@ export default function searchAccountScreen () {
           alignItems="center"
         >
           <Heading size="xs" fontFamily="$heading">
-            {profile.num_groups}
+            {groups.length}
           </Heading>
           <Text size="xs">Groups</Text>
       </VStack>
