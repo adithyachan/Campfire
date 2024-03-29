@@ -7,6 +7,8 @@ import { Modal, Button, ButtonIcon, ButtonText,
     Pressable, Box, ScrollView, useToast, Toast, 
     ToastDescription, ToastTitle, CheckIcon, Image, Card, Avatar, AvatarFallbackText, AvatarImage, Divider, HStack, FlatList, Fab, FabIcon, FabLabel, 
     AddIcon} from "@gluestack-ui/themed";
+    ToastDescription, ToastTitle, CheckIcon, Image, Card, Avatar, AvatarFallbackText, AvatarImage, Divider, HStack, FlatList, Fab, FabIcon, FabLabel, 
+    AddIcon} from "@gluestack-ui/themed";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
@@ -26,6 +28,7 @@ export default function GroupScreen() {
     const [isMember, setIsMember] = useState(false);
     const [subscriptions, setSubscriptions] = useState<any>(null);
     const [leaveConfirmationVisible, setLeaveConfirmationVisible] = useState(false);
+    const [showCreate, setShowCreate] = useState(false);
     const [userId, setUserId] = useState<string>('')
     const [loading1, setLoading1] = useState<boolean>(true)
     const [loading2, setLoading2] = useState<boolean>(true)
