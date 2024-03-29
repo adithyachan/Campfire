@@ -597,7 +597,7 @@ export default function GroupScreen() {
           <ScrollView>
             <Box h="$full">
               <GroupPageHeader />
-              { isMember && groupPosts && subscribers && subscribers.includes(userId) &&<GroupPostCards /> }
+              { (isMember || subscribers.includes(userId)) && <GroupPostCards /> }
               { isMember && !isGroupPublic && 
                 <ShareGroupModal 
                   isOpen={ showShare } 
