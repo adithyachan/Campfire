@@ -373,6 +373,7 @@ export default function GroupScreen() {
         size="md" 
         variant="solid" 
         action="positive" 
+        mb="$2"
         onPress={async () => {
           try {
             const { error } = await supabase
@@ -411,6 +412,7 @@ export default function GroupScreen() {
       size="md" 
       variant="solid" 
       action="negative" 
+
       onPress={
         handleUnsubscribe
       }
