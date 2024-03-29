@@ -4,8 +4,8 @@ import { Modal, Button, ButtonIcon, ButtonText,
     Heading, Icon, Input, InputField, ModalBackdrop, ModalBody, 
     ModalCloseButton, ModalContent, ModalFooter, ModalHeader, 
     ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, 
-    Pressable, Box, ScrollView, useToast, Toast, 
-    ToastDescription, ToastTitle, CheckIcon, Image, Card, Avatar, AvatarFallbackText, AvatarImage, Divider, HStack, FlatList } from "@gluestack-ui/themed";
+    Pressable, Box, ScrollView, Tooltip, TooltipContent, TooltipText,
+    Image, Card, Avatar, AvatarFallbackText, AvatarImage, Divider, HStack, FlatList } from "@gluestack-ui/themed";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
@@ -27,7 +27,7 @@ export default function GroupScreen() {
     const [userId, setUserId] = useState<string>('')
     const [loading1, setLoading1] = useState<boolean>(true)
     const [loading2, setLoading2] = useState<boolean>(true)
-
+    const [manageGroupModalVisible, setManageGroupModalVisible] = useState(false);
 
 
     const confirmLeaveGroup = () => {
@@ -112,11 +112,25 @@ export default function GroupScreen() {
 
         }
 
-    },[navigation, items])
+
+        const getNonAdminMembers = () => {
+          if (groupData) {
+            return groupMembers.filter(member => member.user_id !== groupData.admin);
+          }
+          return [];
+        };
+    
+        const nonAdminMembers = getNonAdminMembers();
+
+    },[navigation, items, groupData, groupMembers])
 
     useEffect(() => {
       checkSubscribed();
     }, [])
+
+    const openManageGroupModal = () => {
+        setManageGroupModalVisible(true);
+    };
 
     const checkMembership = async () => {
       const {data: {user}}  = await supabase.auth.getUser();
@@ -199,39 +213,86 @@ export default function GroupScreen() {
       // console.log(`current subscription array 2: ${JSON.stringify(subscriptions)}`)
       
     }
+
+    const ManageGroupModal = () => {
+      return (
+        <Modal isOpen={manageGroupModalVisible} onClose={() => setManageGroupModalVisible(false)}>
+          <ModalBackdrop />
+          <ModalContent>
+            <ModalHeader>
+              <Heading size="lg">Manage Group Members</Heading>
+              <ModalCloseButton onPress={() => setManageGroupModalVisible(false)}>
+                <Icon as={CloseIcon} />
+              </ModalCloseButton>
+            </ModalHeader>
+            <ModalBody>
+              <ScrollView style={{ maxHeight: '95%' }}>
+                {groupMembers.map((member) => (
+                  <HStack key={member.user_id} justifyContent="space-between" py="$2" alignItems="center">
+                    <Text flex={1}>{member.username}</Text>
+                    <Button variant="solid" action="negative" size="sm" mr="$2">
+                      <ButtonText>Kick</ButtonText>
+                    </Button>
+                    <Button variant="solid" action="negative" size="sm">
+                      <ButtonText>Ban</ButtonText>
+                    </Button>
+                  </HStack>
+                ))}
+              </ScrollView>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      );
+    };
+    
+    
     
 
-    const GroupActionButton = () => {
-      
-      console.log(`SUBSCRIPTIONS: ${JSON.stringify(subscriptions)}`)
-      if (isMember) { // case user is a member of this group already
-        return(
+
+    const GroupActionButton = () => { 
+      const isCurrentUserAdmin = userId === groupData?.admin;
+   
+      if (isCurrentUserAdmin) {
+        return (
+          <>
+          <Box alignItems="center" justifyContent="center" my="$4">
+            <Button size="md" variant="solid" action="negative" isDisabled={true}>
+              <ButtonText>Leave Group</ButtonText>
+            </Button>
+            <Button onPress={openManageGroupModal}>
+              <ButtonText>Manage Group</ButtonText>
+            </Button>
+          </Box>
+          <ManageGroupModal/>
+          </>
+        );
+      } else if (isMember) {
+        return (
           <Box alignItems="center" justifyContent="center" my="$4">
             <Button size="md" variant="solid" action="negative" onPress={confirmLeaveGroup}>
               <ButtonText>Leave Group</ButtonText>
             </Button>
           </Box>
-        )
-      }
-      
-      else if (subscriptions.length !== 0 && subscriptions.includes(items.id)) { // case visiting user is subscribed
-        return(
+        );
+      } else if (subscriptions.length !== 0 && subscriptions.includes(items.id)) {
+        return (
           <Box alignItems="center" justifyContent="center" my="$4">
             <Button size="md" variant="solid" action="negative" onPress={handleUnsubscribe}>
               <ButtonText>Unsubscribe</ButtonText>
             </Button>
-          </Box>)
-      
-      } else { // case visiting user is not subscribed
-        return(
+          </Box>
+        );
+      } else {
+        return (
           <Box alignItems="center" justifyContent="center" my="$4">
             <Button alignItems="center" w="$1/3" size="md" variant="solid" action="primary" onPress={handleSubscribe}>
               <ButtonText>Subscribe</ButtonText>
             </Button>
-          </Box>)
+          </Box>
+        );
       }
-    }
-
+    };
+    
     const ShareCode = async () => {
         try {
           const result = await Share.share({
@@ -536,8 +597,7 @@ export default function GroupScreen() {
                         </Button>
                     </ModalFooter>
                 </ModalContent>
-            </Modal>
-        
+            </Modal>        
         </View>
     );
 }
