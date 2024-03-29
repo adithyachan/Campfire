@@ -165,7 +165,7 @@ export default function GroupScreen() {
   }
 
   const checkMembership = async () => {
-    const { data: membershipData, error: membershipError } = await supabase
+    const { data: mData, error: membershipError } = await supabase
       .from('group_users')
       .select('profile_id')
       .eq('group_id', groupID);
@@ -174,8 +174,8 @@ export default function GroupScreen() {
       throw new Error("MEMBERSHIP ERROR - " + membershipError.message)
     }
 
-    setMembershipData(membershipData.map((member) => member.profile_id))
-    setIsMember(membershipData.map((member) => member.profile_id).includes(await getCurrentUserID()));
+    setMembershipData(mData.map((member) => member.profile_id))
+    setIsMember(mData.map((member) => member.profile_id).includes(await getCurrentUserID()));
     setLoadingCheckMembership(false)
   }
 
@@ -552,19 +552,20 @@ export default function GroupScreen() {
     if (routeParams.first) {
       alert('Welcome to ' + routeParams.name);
     }
-
     navigation.setOptions({
       headerTitle: routeParams.name,
       headerBackTitle: 'Home',
       headerRight: () => (
-        shareButton
+        (isMember && !isGroupPublic) ? shareButton : null
       )
     });
   }
 
   useEffect(() => {
     setTitle();
+  }, [isMember, isGroupPublic]);
 
+  useEffect(() => {
     try {
       getCurrentUserID()
       checkMembership()
@@ -590,7 +591,7 @@ export default function GroupScreen() {
             <Box h="$full">
               <GroupPageHeader />
               { isMember && groupPosts && <GroupPostCards /> }
-              { isMember && !isGroupPublic &&
+              { isMember && !isGroupPublic && 
                 <ShareGroupModal 
                   isOpen={ showShare } 
                   onClose={ () => 
