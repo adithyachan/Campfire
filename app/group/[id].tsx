@@ -5,12 +5,14 @@ import { Modal, Button, ButtonIcon, ButtonText,
     ModalCloseButton, ModalContent, ModalFooter, ModalHeader, 
     ShareIcon, Text, VStack, InputIcon, CopyIcon, InputSlot, 
     Pressable, Box, ScrollView, useToast, Toast, 
-    ToastDescription, ToastTitle, CheckIcon, Image, Card, Avatar, AvatarFallbackText, AvatarImage, Divider, HStack, FlatList } from "@gluestack-ui/themed";
+    ToastDescription, ToastTitle, CheckIcon, Image, Card, Avatar, AvatarFallbackText, AvatarImage, Divider, HStack, FlatList, Fab, FabIcon, FabLabel, 
+    AddIcon} from "@gluestack-ui/themed";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
 import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CreatePostModal from "./createPostModal";
 
 
 export default function GroupScreen() {
@@ -28,6 +30,7 @@ export default function GroupScreen() {
     const [loading1, setLoading1] = useState<boolean>(true)
     const [loading2, setLoading2] = useState<boolean>(true)
 
+    const [showCreate, setShowCreate] = useState(false);
 
 
     const confirmLeaveGroup = () => {
@@ -547,7 +550,20 @@ export default function GroupScreen() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-        
+            { isMember ? 
+            <Fab
+              size="md"
+              mb="$10"
+              placement="bottom right"
+              isHovered={false}
+              isDisabled={false}
+              isPressed={false}
+              onPress={() => { setShowCreate(true) }}
+            >
+              <FabIcon as={AddIcon} mr="$1" />
+              <FabLabel>Create Post</FabLabel>
+            </Fab> : null}
+            <CreatePostModal isOpen={showCreate} onClose={ () => { setShowCreate(false) }} /> 
         </View>
     );
 }
