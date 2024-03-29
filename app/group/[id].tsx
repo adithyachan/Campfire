@@ -418,18 +418,18 @@ export default function GroupScreen() {
       <ButtonText>Unsubscribe</ButtonText>
     </Button>
    
-  const subscribeButton = 
+   const subscribeButton = (
     <Button 
       alignItems="center" 
       size="md" 
       variant="solid" 
       action="primary" 
-      onPress={
-        handleSubscribe
-      }
+      onPress={handleSubscribe}
     >
       <ButtonText>Subscribe</ButtonText>
     </Button>
+  );
+  
 
   const loadingSpinner = 
   <Box 
@@ -522,18 +522,23 @@ export default function GroupScreen() {
   }
 
   const GroupActionButton = () => {
+    const isSubscribed = subscribers.includes(userId);
+
     return (
       <Box alignItems="center" justifyContent="center" my="$4">
         {isMember ? (
           leaveGroupButton
-        ) : subscribers.length !== 0 && subscribers.includes(userId) ? (
-          unsubscribeButton
-        ) : !isMember && isGroupPublic ? (
-          joinGroupButton()
-        ) : null}
+        ) : (
+          <VStack>
+            {isGroupPublic && !isMember && joinGroupButton()}
+            {!isMember && (
+              isSubscribed ? unsubscribeButton : subscribeButton
+            )}
+          </VStack>
+        )}
       </Box>
     );
-  };  
+  };
 
   const GroupPostCards = () => {
     return (
