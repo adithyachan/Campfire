@@ -14,6 +14,7 @@ import PostCard from "~/components/postCard";
 import ShareGroupModal from "./shareGroupModal";
 import ShowMembersModal from "./showMembersModal";
 import LeaveGroupModal from "./leaveGroupModal";
+import ManageGroupModal from "./manageGroupModal";
 
 type Profile = { 
   user_id: string, 
@@ -42,6 +43,7 @@ export default function GroupScreen() {
   const [showShare, setShowShare] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
+  const [manageGroupModalVisible, setManageGroupModalVisible] = useState(false);
 
   // group related data
   const groupID = routeParams.id;
@@ -55,6 +57,7 @@ export default function GroupScreen() {
   const [isMember, setIsMember] = useState(false)
   const [subscribers, setSubscribers] = useState<string[]>([])
   const [userId, setUserId] = useState<string>('')
+  const isCurrentUserAdmin = userId === groupData?.admin;
 
   const [leaveConfirmationVisible, setLeaveConfirmationVisible] = useState(false)
 
@@ -208,11 +211,126 @@ export default function GroupScreen() {
       .delete()
       .match({ profile_id: userId, group_id: groupID });
 
+
+      const { data: groupData, error: groupError } = await supabase
+      .from('groups')
+      .select('num_members')
+      .eq('group_id', groupID)
+      .single();
+
+      if (groupError || !groupData) {
+        console.error('Error fetching group data:', groupError);
+        return;
+      }
+
+      const updatedNumMembers = Math.max(0, groupData.num_members - 1);
+
+      const { error: updateError } = await supabase
+          .from('groups')
+          .update({ num_members: updatedNumMembers })
+          .eq('group_id', groupID);
+
+      if (updateError) {
+        console.error('Error updating group member count:', updateError);
+      }
+
     if (error) {
       console.error('LEAVE GROUP ERROR - ' + error.message);
     } else {
       await AsyncStorage.setItem('refreshGroups', 'true');
       router.navigate("groups");
+    }
+  };
+
+  const handleBanMember = async (profileId: string) => {
+    try {
+      const { error: kickError } = await supabase
+        .from('group_users')
+        .delete()
+        .match({ profile_id: profileId, group_id: groupID});
+  
+      if (kickError) {
+        throw kickError;
+      }
+  
+      if (!groupData) {
+        console.error('Group data is not available.');
+        alert('Group data is not available.');
+        return;
+      }
+  
+      const { data: group, error: groupError } = await supabase
+        .from('groups')
+        .select('banlist')
+        .eq('group_id', groupID)
+        .single();
+  
+      if (groupError) {
+        throw groupError;
+      }
+  
+      const updatedBanlist = group.banlist ? [...group.banlist, profileId] : [profileId];
+  
+      const { error: updateGroupError } = await supabase
+        .from('groups')
+        .update({ 
+          num_members: groupData.num_members - 1,
+          banlist: updatedBanlist
+        })
+        .eq('group_id', groupID);
+  
+      if (updateGroupError) {
+        throw updateGroupError;
+      }
+
+      await getMembers();
+      setManageGroupModalVisible(false);
+      await checkMembership();
+
+      alert('Member has been banned.');
+    } catch (error) {
+      console.error('Error during ban operation:', error);
+      alert('An error occurred while trying to ban the member.');
+    }
+  };
+  
+  
+  const handleKickMember = async (profileId: string) => {
+    try {
+      const { error: kickError } = await supabase
+        .from('group_users')
+        .delete()
+        .match({ profile_id: profileId, group_id: groupID});
+  
+      if (kickError) {
+        throw kickError;
+      }
+
+      if (!groupData) {
+        console.error('Group data is not available.');
+        alert('Group data is not available.');
+        return;
+      }
+  
+      const { error: updateGroupError } = await supabase
+        .from('groups')
+        .update({ num_members: groupData.num_members - 1 })
+        .match({ group_id: groupID});
+  
+      if (updateGroupError) {
+        throw updateGroupError;
+      }
+  
+      await getMembers();
+      setManageGroupModalVisible(false);
+      await checkMembership();
+
+      setManageGroupModalVisible(false);
+  
+      alert('Member has been kicked out.');
+    } catch (error) {
+      console.error('Error during kick operation:', error);
+      alert('An error occurred while trying to kick the member.');
     }
   };
 
@@ -230,13 +348,35 @@ export default function GroupScreen() {
   const leaveGroupButton = 
     <Button 
       size="md" 
-      variant="link" 
+      variant="solid" 
       action="negative" 
+      isDisabled={isCurrentUserAdmin}
       onPress={() => {
         setLeaveConfirmationVisible(true)
       }}>
       <ButtonText>Leave Group</ButtonText>
     </Button>
+
+  const manageGroupButton = (
+    <VStack mt="$4" alignItems="center">
+      <Box width={"35%"}>
+        {/* Updated Button onPress to directly set manageGroupModalVisible */}
+        <Button onPress={() => setManageGroupModalVisible(true)} mt="$2">
+          <ButtonText>Manage Group</ButtonText>
+        </Button>
+      </Box>
+      <ManageGroupModal
+        isVisible={manageGroupModalVisible}
+        onClose={() => setManageGroupModalVisible(false)}
+        groupMembers={groupMembers}
+        handleKickMember={handleKickMember}
+        handleBanMember={handleBanMember}
+        groupData={groupData}
+      />
+    </VStack>
+  );
+  
+
   
   const unsubscribeButton = 
     <Button 
@@ -365,7 +505,7 @@ export default function GroupScreen() {
         }
       </Box>
     );
-  }
+  };
 
   const GroupPostCards = () => {
     return (
@@ -447,6 +587,7 @@ export default function GroupScreen() {
                 }
                 handleLeaveGroup={ handleLeaveGroup }
               />
+              {isCurrentUserAdmin && manageGroupButton}
               <CreatePostModal 
                 isOpen={showCreate} 
                 onClose={() => { 
