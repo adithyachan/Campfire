@@ -52,15 +52,15 @@ export default function GroupScreen() {
   const [groupData, setGroupData] = useState<Group>()
   const [membershipData, setMembershipData] = useState<string[]>([])
   const [groupCode, setGroupCode] = useState('')
+  const [isGroupPublic, setIsGroupPublic] = useState(false);
 
   // Visiting user related data
   const [isMember, setIsMember] = useState(false)
   const [subscribers, setSubscribers] = useState<string[]>([])
   const [userId, setUserId] = useState<string>('')
   const isCurrentUserAdmin = userId === groupData?.admin;
-
+  const [isBanned, setIsBanned] = useState(false);
   const [leaveConfirmationVisible, setLeaveConfirmationVisible] = useState(false)
-
   const [loadingMemberList, setLoadingMemberList] = useState(true)
   const [loadingGroupCode, setLoadingGroupCode] = useState(true)
   const [loadingPosts, setLoadingPosts] = useState(true)
@@ -128,6 +128,8 @@ export default function GroupScreen() {
     // console.log(groupData)
     setGroupCode(groupData?.code)
     setGroupData(groupData as Group);
+    setIsGroupPublic(groupData?.public_profile);
+    setIsBanned(groupData?.banlist?.includes(userId));
     setLoadingGroupCode(false);
   }
 
@@ -210,28 +212,13 @@ export default function GroupScreen() {
       .from('group_users')
       .delete()
       .match({ profile_id: userId, group_id: groupID });
+      
+      const { data: dU, error: eU } = await supabase.rpc('increment_group_member_count', {x: -1, id: groupID});
 
-
-      const { data: groupData, error: groupError } = await supabase
-      .from('groups')
-      .select('num_members')
-      .eq('group_id', groupID)
-      .single();
-
-      if (groupError || !groupData) {
-        console.error('Error fetching group data:', groupError);
-        return;
-      }
-
-      const updatedNumMembers = Math.max(0, groupData.num_members - 1);
-
-      const { error: updateError } = await supabase
-          .from('groups')
-          .update({ num_members: updatedNumMembers })
-          .eq('group_id', groupID);
-
-      if (updateError) {
-        console.error('Error updating group member count:', updateError);
+      if (eU) {
+        console.log("Failed to update num_groups:", eU.message);
+      } else {
+        console.log("num_groups updated successfully:", dU);
       }
 
     if (error) {
@@ -376,7 +363,57 @@ export default function GroupScreen() {
     </VStack>
   );
   
+  const joinGroupButton = () => {
+    if (!isGroupPublic) {
+      return null;
+    }
 
+    if (isBanned) {
+      return (
+        <Button 
+          size="md" 
+          variant="solid" 
+          action="negative"
+          disabled={true}
+        >
+          <ButtonText>Banned from Group</ButtonText>
+        </Button>
+      );
+    }
+  
+    return (
+      <Button 
+        size="md" 
+        variant="solid" 
+        action="positive" 
+        onPress={async () => {
+          try {
+            const { error } = await supabase
+              .from('group_users')
+              .insert([{ group_id: groupID, profile_id: userId }]);
+  
+            if (error) throw error;
+  
+            const { data: dU, error: eU } = await supabase.rpc('increment_group_member_count', {x: 1, id: groupID});
+  
+            if (eU) {
+              console.log("Failed to update num_groups:", eU.message);
+            }
+  
+            setIsMember(true);
+            checkMembership();
+            await AsyncStorage.setItem('refreshGroups', 'true');
+          } catch (error) {
+            console.error('Error joining group:', error);
+            alert('Error joining group');
+          }
+        }}
+      >
+        <ButtonText>Join Group</ButtonText>
+      </Button>
+    );
+  };
+  
   
   const unsubscribeButton = 
     <Button 
@@ -496,16 +533,16 @@ export default function GroupScreen() {
   const GroupActionButton = () => {
     return (
       <Box alignItems="center" justifyContent="center" my="$4">
-        {
-          isMember ?
-            leaveGroupButton :
-          subscribers.length !== 0 && subscribers.includes(userId) ?
-            unsubscribeButton :
-          subscribeButton
-        }
+        {isMember ? (
+          leaveGroupButton
+        ) : subscribers.length !== 0 && subscribers.includes(userId) ? (
+          unsubscribeButton
+        ) : !isMember && isGroupPublic ? (
+          joinGroupButton()
+        ) : null}
       </Box>
     );
-  };
+  };  
 
   const GroupPostCards = () => {
     return (

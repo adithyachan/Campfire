@@ -2,7 +2,7 @@ import { View } from "react-native";
 import {Alert, ScrollView, VStack, Center,  Heading, Button, ButtonIcon, AddIcon, Modal,
 	ModalBackdrop, ButtonText, ModalFooter, ModalContent, ModalHeader, ModalCloseButton,
 	Icon, ModalBody, CloseIcon, FormControl, AlertCircleIcon, FormControlError, FormControlErrorIcon, 
-	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, 
+	FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText, Switch,
 	Input, InputField, HStack, Fab, FabIcon, Box, Toast, ToastTitle, useToast, GlobeIcon, Menu, MenuItem, MenuItemLabel, SettingsIcon, Divider, ToastDescription} from "@gluestack-ui/themed";
 import { supabase } from "~/utils/supabase";
 import GroupCard from "~/components/groupcard";
@@ -26,6 +26,8 @@ export default function GroupsScreen() {
 		const [showGCE, setGCE] = useState(false)
 		const [showModal, setShowModal] = useState(false)
 		const [selected, setSelected] = useState<Selection | null>(null);
+		const [isGroupPublic, setIsGroupPublic] = useState(false); // Add this line
+
 
 		const getInitialGroupData = async () => {
 			try {
@@ -111,7 +113,14 @@ export default function GroupsScreen() {
 				console.log("Group Code: ", groupCode)
 
 				// Insert a group using RPC
-				const { data, error } = await supabase.rpc('insert_groups', {group_name: groupName, group_bio: groupBio, group_code: groupCode, user_id: userId, admin: userId})
+				const { data, error } = await supabase.rpc('insert_groups', {
+					group_name: groupName,
+					group_bio: groupBio,
+					group_code: groupCode,
+					user_id: userId,
+					admin: userId,
+					public_profile: isGroupPublic
+				});
 				console.log(data, error)
 				if (!error) {
 					const groupIds = data.map((group: { group_id: any; }) => group.group_id);
@@ -276,9 +285,9 @@ export default function GroupsScreen() {
         <Icon as={AddIcon} size="sm" mr="$2" />
         <MenuItemLabel size="sm">Create a group</MenuItemLabel>
       </MenuItem>
-      <MenuItem textValue="Join a group" onPress={() => setShowJoin(true)}>
+      <MenuItem textValue="Join a private group" onPress={() => setShowJoin(true)}>
         <Icon as={UsersRound} size="sm" mr="$2" />
-        <MenuItemLabel size="sm">Join a group</MenuItemLabel>
+        <MenuItemLabel size="sm">Join a private group</MenuItemLabel>
       </MenuItem>
     </Menu>
 			<Modal
@@ -300,7 +309,7 @@ export default function GroupsScreen() {
 							</ModalCloseButton>
 						</ModalHeader>
 						<ModalBody>
-							<VStack>
+							<VStack space="md">
 							<FormControl size="md" isRequired={true} isInvalid={showGNE}>
 								<FormControlLabel mb='$1'>
 								<FormControlLabelText>Group Name</FormControlLabelText>
@@ -343,6 +352,12 @@ export default function GroupsScreen() {
 							<FormControlHelper>
 								<FormControlHelperText>Type your bio above. Must be under 300 characters.</FormControlHelperText>
 							</FormControlHelper>
+							</FormControl>
+							<FormControl>
+								<HStack space="md">
+									<Switch value={isGroupPublic} onValueChange={value => setIsGroupPublic(value)} />
+									<FormControlHelperText>Public Group</FormControlHelperText>
+								</HStack>
 							</FormControl>
 							</VStack>
 						</ModalBody>
@@ -388,7 +403,7 @@ export default function GroupsScreen() {
 						<ModalBackdrop />
 						<ModalContent>
 						<ModalHeader>
-							<Heading size="lg">Join a group	</Heading>
+							<Heading size="lg">Join a private group	</Heading>
 							<ModalCloseButton>
 							<Icon as={CloseIcon} />
 							</ModalCloseButton>
@@ -397,7 +412,7 @@ export default function GroupsScreen() {
 							<VStack>
 							<FormControl size="md" isDisabled={false} isInvalid={showGCE} >
 								<FormControlLabel mb='$1'>
-								<FormControlLabelText>Group Code</FormControlLabelText>
+								<FormControlLabelText>Private Group Code</FormControlLabelText>
 								</FormControlLabel>
 								<Input>
 								<InputField
@@ -473,7 +488,7 @@ export default function GroupsScreen() {
 						</Button>
 						<Button bgColor="$amber100" variant="solid" size="md"  onPress={() => {setShowModal(false); setShowJoin(true);}}> 
 							<ButtonText color="$amber700">
-								Join a group
+								Join a private group
 							</ButtonText>
 						</Button>
 						</HStack>
