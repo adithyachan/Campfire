@@ -364,21 +364,8 @@ export default function GroupScreen() {
   );
   
   const joinGroupButton = () => {
-    if (!isGroupPublic) {
+    if (!isGroupPublic || isBanned) {
       return null;
-    }
-
-    if (isBanned) {
-      return (
-        <Button 
-          size="md" 
-          variant="solid" 
-          action="negative"
-          disabled={true}
-        >
-          <ButtonText>Banned from Group</ButtonText>
-        </Button>
-      );
     }
   
     return (
@@ -393,12 +380,14 @@ export default function GroupScreen() {
               .insert([{ group_id: groupID, profile_id: userId }]);
   
             if (error) throw error;
-  
+
             const { data: dU, error: eU } = await supabase.rpc('increment_group_member_count', {x: 1, id: groupID});
-  
-            if (eU) {
-              console.log("Failed to update num_groups:", eU.message);
-            }
+
+						if (eU) {
+							console.log("Failed to update num_groups:", eU.message);
+						} else {
+							console.log("num_groups updated successfully:", dU);
+						}
   
             setIsMember(true);
             checkMembership();
