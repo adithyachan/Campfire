@@ -20,7 +20,7 @@ export default function HomeFeedScreen() {
   const [userId, setUserId] = useState<string>();
 	const [subscriptions, setSubscriptions] = useState<string[]>();
 	const [posts, setPosts] = useState<Post[]>();
-
+	const [loading, setLoading] = useState(true);
 
 	const getCurrentUserID = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -60,15 +60,17 @@ export default function HomeFeedScreen() {
 		getCurrentUserID()
 		getUserSubscriptions()
 		getSubscribedGroupPosts()
+		setLoading(false)
 	}, [userId, refreshCount])
 
-	if (userId === undefined || subscriptions === undefined || posts === undefined) {
+	if (loading) {
 		return (
 			<Spinner size='large' />
 		)
 	}
 	if (posts?.length === 0) {
 		return(
+			
 			<>
 				<View className={styles.container}>
 					<Text className={styles.title}>Your feed is empty!</Text>
@@ -81,10 +83,6 @@ export default function HomeFeedScreen() {
 			</>
 			
 		)
-	}
-
-	const renderPostItem = (itemData: ListRenderItemInfo<Post>) => {
-		return <PostCard key={itemData.item.post_id} postData={itemData.item} />
 	}
 	return(
 		<>	
