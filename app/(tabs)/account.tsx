@@ -16,7 +16,14 @@ import {
   ModalBody,
   ModalFooter,
   Input,
-  InputField
+  InputField,
+  useToast,
+  ToastTitle,
+  Toast,
+  VStack,
+  ToastDescription,
+  HStack,
+  Switch
 } from '@gluestack-ui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../utils/supabase'; 
@@ -30,13 +37,82 @@ type Profile = {
   avatarUrl: string | null;
   firstName: string;
   lastName: string;
+  notifications: boolean;
 };
 
 const AccountScreen = () => {
+  const toast = useToast()
+  supabase
+    .channel('profile_subscriptions')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'profile_subscriptions' }, async (payload) => {
+      const insertedRow = payload.new
+      console.log(`new row inserted: ${JSON.stringify(insertedRow)}`)
+      
+      const {data: {user}}  = await supabase.auth.getUser();
+      const { data: groupMembersData, error: groupMembersError} = await supabase
+        .from('group_users')
+        .select('*')
+        .eq('group_id', insertedRow.group_id)
+        .eq('profile_id', user?.id)
+
+      if (groupMembersError) {
+        console.log(groupMembersError);
+        return;
+      }
+      const {data: notificationData, error: notificationError} = await supabase
+      .from('profiles')
+      .select('notifications')
+      .eq('user_id', user?.id)
+      .single()
+
+      if (groupMembersData.length > 0 && notificationData?.notifications) {
+        console.log('current user is a member of a group that was just subscribed to')
+        const { data: subscriberProfileData, error: subscriberProfileError} = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('user_id', insertedRow.profile_id)
+        
+        const { data: subscribedGroupData, error: subscribedGroupError} = await supabase
+          .from('groups')
+          .select('name')
+          .eq('group_id', insertedRow.group_id)
+
+        const subscriberUsername = subscriberProfileData![0].username
+        const subscribedGroupName = subscribedGroupData![0].name
+
+        console.log(`SUBSCRIBER PROFILE USERNAME: ${subscriberUsername}`)
+        console.log(`SUBSCRIBER GROUP NAME: ${subscribedGroupName}`)
+
+        toast.show({
+          duration: 7000,
+          placement: "top",
+          render: ({ id }) => {
+            const toastId = "toast-" + id
+            return (
+              <Toast nativeID={toastId} action="attention" variant="solid">
+                <VStack space="xs">
+                  <ToastTitle>New Subscriber</ToastTitle>
+                  <ToastDescription>
+                    {subscriberUsername} just subscribed to {subscribedGroupName}!
+                  </ToastDescription>
+                </VStack>
+              </Toast>
+            )
+          },
+        })
+
+      }
+
+      
+    })
+    .subscribe()
+
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [newBio, setNewBio] = useState('');
+  const [switchState, setSwitchState] = useState<boolean>();
+  
   
   useEffect(() => {
 		const fetchProfile = async () => {
@@ -52,7 +128,7 @@ const AccountScreen = () => {
 	
 				let { data, error } = await supabase
 					.from('profiles')
-					.select('bio, avatar_url, first_name, last_name')
+					.select('bio, avatar_url, first_name, last_name, notifications')
 					.eq('user_id', userId)
 					.single();
 		
@@ -61,7 +137,10 @@ const AccountScreen = () => {
 					avatarUrl: data?.avatar_url,
 					firstName: data?.first_name ?? '',
 					lastName: data?.last_name ?? '',
+          notifications: data?.notifications
+
 				});
+        
 			} catch (error: any) {
 				console.error('Error fetching profile:', error.message);
 			} finally {
@@ -70,8 +149,8 @@ const AccountScreen = () => {
 		};
 	
 		fetchProfile();
+    
 	}, []);
-
   const onChangeProfilePhoto = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -275,6 +354,24 @@ const bioChangeModal = (
   const handleResetPassword = async () => {
     router.navigate("/auth/resetpassword")
   }
+
+  const handleNotificationToggle = async () => {
+    const {data: {user}}  = await supabase.auth.getUser(); 
+    const {data: notificationData, error: notificationError} = await supabase
+      .from('profiles')
+      .select('notifications')
+      .eq('user_id', user?.id)
+      .single()
+
+    const newNotifs = ! notificationData?.notifications
+    setSwitchState(newNotifs)
+    const {error} = await supabase
+      .from('profiles')
+      .update({notifications: newNotifs})
+      .eq('user_id', user?.id)
+
+  }
+
   return (
     <View style={styles.container}>
       <Text marginBottom={20} bold={true} size={'5xl'}>{`${profile.firstName} ${profile.lastName}`}</Text>
@@ -293,7 +390,10 @@ const bioChangeModal = (
 
             
       <Divider style={styles.divider} />
-            
+      <HStack space="md">
+        <Switch defaultValue={profile.notifications} value={switchState}onToggle={handleNotificationToggle}/>
+        <Text size="sm">Allow notifications</Text>
+      </HStack>
       <Button
         size="md"
         variant="solid"
