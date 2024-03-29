@@ -172,8 +172,17 @@ export default function GroupsScreen() {
 					setGCE(true)
 					setGroupCodeError("This group does not exist!")
 				} else {
-
 					console.log('Code exists in the groups table.');
+
+					if (groups && groups.length > 0) {
+						const group = groups[0];
+						if (group.banlist && group.banlist.includes(userId)) {
+							setGCE(true);
+							setGroupCodeError("You are banned from joining this group.");
+							return;
+						}
+					}
+
 					const groupId = groups![0].group_id; 
 					console.log(groupId)
 					const { data: insertedData, error: insertError } = await supabase
