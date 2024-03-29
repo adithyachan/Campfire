@@ -64,7 +64,6 @@ export default function GroupScreen() {
   const [loadingPosts, setLoadingPosts] = useState(true)
   const [loadingCheckMembership, setLoadingCheckMembership] = useState(true)
   const [loadingSubscribers, setLoadingSubcribers] = useState(true)
-  
 
   ////// Database Queries ///////
   const getCurrentUserID = async () => {
