@@ -1,11 +1,11 @@
 import { ListRenderItemInfo, Text, View } from "react-native";
 import PostCard from "~/components/postCard";
-
 import { useEffect, useState } from "react";
 import { supabase } from "~/utils/supabase";
-import { Fab, FabIcon, Spinner, ScrollView, Center } from "@gluestack-ui/themed";
-import { RepeatIcon } from "lucide-react-native";
-
+import { Fab, FabIcon, Spinner, ScrollView, Center, 
+		Button, ButtonIcon, Menu, MenuItem, Icon, MenuItemLabel } from "@gluestack-ui/themed";
+import { RepeatIcon, ArrowUpDownIcon } from "lucide-react-native";
+import { useNavigation } from "expo-router";
 type Post = {
 	post_id: string,
 	group_id: string,
@@ -15,9 +15,9 @@ type Post = {
 	created_at: string
 }
 export default function HomeFeedScreen() {
-
+	const navigation = useNavigation()
 	const [refreshCount, setRefreshCount] = useState(0);
-  const [userId, setUserId] = useState<string>();
+  	const [userId, setUserId] = useState<string>();
 	const [subscriptions, setSubscriptions] = useState<string[]>();
 	const [posts, setPosts] = useState<Post[]>();
 	const [loading, setLoading] = useState(true);
@@ -53,8 +53,44 @@ export default function HomeFeedScreen() {
 			setPosts(postData as Post[])
 			console.log(`posts from subscribed groups: ${JSON.stringify(postData)}`)
 		}
-		
 	}
+	// Set the header options
+	navigation.setOptions({
+		headerRight: () => (
+			shareButton
+		)
+	  });
+	
+	////// Components //////
+	const shareButton =  
+	<Menu
+	placement="bottom"
+	selectionMode="single"
+	closeOnSelect={true}
+	borderRadius={"$xl"}
+	mx={"$2"}
+
+	trigger={({ ...triggerProps }) => {
+	  return (
+		<Button 
+		{...triggerProps}
+		variant="link" 
+		margin={10}
+	  >
+		<ButtonIcon as={ArrowUpDownIcon} />
+	  </Button>
+	  )
+	}}
+  >
+	<MenuItem textValue="Create a group" onPress={() => {}}>
+	  <Icon as={ArrowUpDownIcon} size="sm" mr="$2" />
+	  <MenuItemLabel size="sm">Newest</MenuItemLabel>
+	</MenuItem>
+	<MenuItem textValue="Join a private group" onPress={() => {}}>
+	  <Icon as={ArrowUpDownIcon} size="sm" mr="$2" />
+	  <MenuItemLabel size="sm">Most Liked</MenuItemLabel>
+	</MenuItem>
+  </Menu>
 
 	useEffect(() => {
 		getCurrentUserID()
