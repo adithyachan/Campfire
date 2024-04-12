@@ -1,8 +1,10 @@
-import { Box, Card, HStack, Image, VStack, Text, Spinner, Heading, Avatar, AvatarImage, AvatarBadge, AvatarFallbackText, Icon, Button, ButtonIcon, StarIcon, ButtonText, MessageCircleIcon, Accordion, AccordionContent, AccordionContentText, AccordionHeader, AccordionIcon, AccordionItem, AccordionTitleText, AccordionTrigger, ChevronDownIcon, ChevronUpIcon, ScrollView, CloseIcon } from "@gluestack-ui/themed";
+import { Box, Card, HStack, Image, VStack, Text, Spinner, Heading, Avatar, AvatarImage, AvatarBadge, AvatarFallbackText, Icon, Button, ButtonIcon, StarIcon, ButtonText, MessageCircleIcon, Accordion, AccordionContent, AccordionContentText, AccordionHeader, AccordionIcon, AccordionItem, AccordionTitleText, AccordionTrigger, ChevronDownIcon, ChevronUpIcon, ScrollView, CloseIcon, Pressable } from "@gluestack-ui/themed";
 import { useState, useEffect } from "react";
 import { supabase } from "~/utils/supabase";
 import CommentModal from "./commentModal";
 import ConfirmDeleteModal from "./confirmDeleteModal";
+import { router } from "expo-router";
+
 
 const myDateParse = (s: string) => {
   let b = s.split(/\D/);
@@ -278,6 +280,20 @@ export default function PostCard(props: { postData: { post_id: string, user_id: 
                 <ScrollView>
                   <VStack>
                     { comments?.map((c) => 
+                            <Pressable onPress={async () => {
+                              if (userID === c.user_id) {
+                                router.push({
+                                  pathname: "/account"
+                                })
+                                return;
+                              } else {
+                                router.push({
+                                  pathname: "/account/[id]",
+                                  params: {id: c.user_id ?? ""}
+                                })
+                                return;
+                              }
+                          }}>
                       <Box flexDirection="row" justifyContent="space-between" alignItems="center" key={ c.id }>
                         <HStack mt="$3" alignItems="center">
                           <Heading size="sm">{ `${c.username} ~ ` }</Heading>
@@ -291,6 +307,7 @@ export default function PostCard(props: { postData: { post_id: string, user_id: 
                           <ConfirmDeleteModal isOpen={showConfirmDeleteCommentModal} onClose={() => setShowConfirmDeleteCommentModal(false)} handleSubmit={handleCommentDeleteFunGen(c)}/>
                         </> : null}
                       </Box>
+                      </Pressable>
                     )}
                   </VStack>
                 </ScrollView>
