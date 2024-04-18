@@ -1,12 +1,13 @@
 import { ListRenderItemInfo, Text, View } from "react-native";
 import PostCard from "~/components/postCard";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "~/utils/supabase";
 import { Fab, FabIcon, Spinner, ScrollView, Center, 
 		Button, ButtonIcon, Menu, MenuItem, Icon, MenuItemLabel } from "@gluestack-ui/themed";
-import { RepeatIcon, ArrowUpDownIcon } from "lucide-react-native";
+import { RepeatIcon, ArrowUpDownIcon, ArrowDown10 } from "lucide-react-native";
 import { useNavigation } from "expo-router";
 type Post = {
+	likes: any;
 	post_id: string,
 	group_id: string,
 	user_id: string,
@@ -21,7 +22,34 @@ export default function HomeFeedScreen() {
 	const [subscriptions, setSubscriptions] = useState<string[]>();
 	const [posts, setPosts] = useState<Post[]>();
 	const [loading, setLoading] = useState(true);
+	const [sortOption, setSortOption] = useState("Newest");
 
+
+	const sortedPosts = useMemo(() => {
+		if (sortOption === 'Newest') {
+			return posts ? [...posts].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) : [];
+		} else if (sortOption === 'Most Liked') {
+			return posts ? [...posts].sort((a, b) => b.likes - a.likes) : [];
+		} else if (sortOption === 'Oldest') {
+			return posts ? [...posts].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) : [];
+		}
+	  }, [posts, sortOption]);
+	  
+
+	const getLikeCount = async (postId: string) => {
+		const { data: likeData, error: likeError } = await supabase
+		  .from("post_likes")
+		  .select("user_id")
+		  .eq("post_id", postId);
+	  
+		if (likeError) {
+		  throw new Error("LIKE DATA ERROR - " + likeError.message);
+		}
+	  
+		return likeData.length;
+	  };
+
+	  
 	const getCurrentUserID = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user == null) {
@@ -49,20 +77,27 @@ export default function HomeFeedScreen() {
 				.select()
 				.in('group_id', subscriptions)
 				// .in('group_id', ["2fb73a1b-b798-433e-a31d-8cacafd1884c"])
-
-			setPosts(postData as Post[])
-			console.log(`posts from subscribed groups: ${JSON.stringify(postData)}`)
+				if (postError) {
+					throw new Error("POST DATA ERROR - " + postError.message);
+				}
+			  
+				const postsWithLikes = await Promise.all(postData.map(async (post) => {
+				const likeCount = await getLikeCount(post.post_id);
+				return { ...post, likes: likeCount };
+				}));
+			
+				setPosts(postsWithLikes);
 		}
 	}
 	// Set the header options
 	navigation.setOptions({
 		headerRight: () => (
-			shareButton
+			sortButton
 		)
 	  });
 	
 	////// Components //////
-	const shareButton =  
+	const sortButton =  
 	<Menu
 	placement="bottom"
 	selectionMode="single"
@@ -82,13 +117,17 @@ export default function HomeFeedScreen() {
 	  )
 	}}
   >
-	<MenuItem textValue="Create a group" onPress={() => {}}>
+	<MenuItem textValue="Create a group" onPress={() => setSortOption('Newest')}>
 	  <Icon as={ArrowUpDownIcon} size="sm" mr="$2" />
 	  <MenuItemLabel size="sm">Newest</MenuItemLabel>
 	</MenuItem>
-	<MenuItem textValue="Join a private group" onPress={() => {}}>
-	  <Icon as={ArrowUpDownIcon} size="sm" mr="$2" />
+	<MenuItem textValue="Join a private group" onPress={() => setSortOption('Most Liked')}>
+	  <Icon as={ArrowDown10} size="sm" mr="$2" />
 	  <MenuItemLabel size="sm">Most Liked</MenuItemLabel>
+	</MenuItem>
+	<MenuItem textValue="Oldest" onPress={() => setSortOption('Oldest')}>
+		<Icon as={ArrowUpDownIcon} size="sm" mr="$2" />
+		<MenuItemLabel size="sm">Oldest</MenuItemLabel>
 	</MenuItem>
   </Menu>
 
@@ -124,7 +163,7 @@ export default function HomeFeedScreen() {
 		<>	
 			<Center mt="$3" mb="$4">
 				<ScrollView showsVerticalScrollIndicator={false}>
-					{posts?.map((postData) => (
+					{sortedPosts?.map((postData) => (
 						
 						<PostCard key={postData.post_id} postData={postData} />
 						
