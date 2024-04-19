@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 import { Alert } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ImagePlusIcon, UploadIcon, XIcon } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "~/utils/supabase";
@@ -12,6 +12,27 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
 
   const [imagePreview, setImagePreview] = useState("");
   const [caption, setCaption] = useState("");
+  const [postCount, setPostCount] = useState(-1);
+
+  useEffect(() => {
+    const fetchPostCount = async () => {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('post_id')
+        .eq('group_id', props.groupID);
+
+      if (error) {
+        console.error('Error fetching post count:', error);
+        return;
+      }
+      console.log("Data", data.length)
+      setPostCount(data.length);
+    }
+    if (postCount === -1) {
+      fetchPostCount();
+    }
+  }, []);
+
   const onClose = () => {
     setImagePreview("");
     setCaption("");
@@ -158,12 +179,18 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
               </Input>
             </FormControl>
           </ModalBody>
-          <ModalFooter justifyContent="space-around">
+          <ModalFooter flexDirection="row" justifyContent="space-around" mb={-5}>
             <Button onPress={handlePostUpload}>
               <ButtonIcon as={UploadIcon} />
               <ButtonText> Post</ButtonText>
             </Button>
-            <Button variant="outline" bgColor="$red50" borderColor="$red400" onPress={onClose}>
+            {postCount > 2 &&
+              <Button >
+              <ButtonIcon as={XIcon} />
+              <ButtonText> Collage </ButtonText>
+              </Button>
+            }
+            <Button variant="outline" bgColor="$red50" borderColor="$red400" onPress={onClose} marginTop={20}>
               <ButtonIcon color="$red400" as={XIcon} />
               <ButtonText color="$red400"> Cancel</ButtonText>
             </Button>
