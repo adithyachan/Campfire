@@ -13,12 +13,13 @@ type Post = {
 	user_id: string,
 	media_url: string,
 	post_caption: string,
-	created_at: string
+	created_at: string,
+	city: string
 }
 export default function HomeFeedScreen() {
 	const navigation = useNavigation()
 	const [refreshCount, setRefreshCount] = useState(0);
-  	const [userId, setUserId] = useState<string>();
+  const [userId, setUserId] = useState<string>();
 	const [subscriptions, setSubscriptions] = useState<string[]>();
 	const [posts, setPosts] = useState<Post[]>();
 	const [loading, setLoading] = useState(true);
