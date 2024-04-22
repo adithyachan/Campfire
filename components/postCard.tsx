@@ -15,7 +15,7 @@ const myDateParse = (s: string) => {
   return new Date(Date.UTC(...b));
 }
 
-export default function PostCard(props: { postData: { post_id: string, user_id: string, group_id: string, media_url: string, post_caption: string, created_at: string } }) {
+export default function PostCard(props: { postData: { post_id: string, user_id: string, group_id: string, media_url: string, post_caption: string, created_at: string, city: string} }) {
 
   const postData = props.postData
 
