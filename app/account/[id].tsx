@@ -21,6 +21,8 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Center,
+  SectionList
 } from '@gluestack-ui/themed';
 import { supabase } from '../../utils/supabase'; 
 import {  router, useLocalSearchParams, useNavigation } from 'expo-router';
@@ -32,6 +34,26 @@ type Profile = {
   lastName: string;
   num_groups: number;
 };
+
+const data = [
+  {
+    title: 'Group 1',
+    data: [
+      { id: '1', content: 'Post 1', taggedUsers: ['User 1', 'User 2'] },
+      { id: '2', content: 'Post 2', taggedUsers: ['User 1', 'User 3'] },
+      // more posts...
+    ],
+  },
+  {
+    title: 'Group 2',
+    data: [
+      { id: '3', content: 'Post 3', taggedUsers: ['User 2', 'User 3'] },
+      { id: '4', content: 'Post 4', taggedUsers: ['User 1', 'User 2', 'User 3'] },
+      // more posts...
+    ],
+  },
+  // more groups...
+];
 
 export default function searchAccountScreen () {
     const navigation = useNavigation();
@@ -162,6 +184,32 @@ export default function searchAccountScreen () {
       </Box>
       <Divider style={styles.divider} />
       
+      <Text justifyContent='center'>
+        Tagged Posts
+      </Text>
+
+      <Center w="100%">
+      <SectionList
+        mb="$4"
+        sections={data}
+        keyExtractor={(item : any, index) => item.id}
+        renderItem={({ item }: { item: any }) => (
+          <Center py="$4" >
+            <Text color="$black">
+              {item.content}
+            </Text>
+          </Center>
+        )}
+        renderSectionHeader={({ section }: { section: any }) => (
+          <Center>
+            <Heading fontSize="$xl" mt="$8" pb="$4">
+              {section.title}
+            </Heading>
+          </Center>
+        )}
+      />
+    </Center>
+
       <Modal
 				isOpen={showGroups}
 				onClose={() => {
@@ -248,7 +296,6 @@ export default function searchAccountScreen () {
 						</ModalFooter>
 						</ModalContent>
 				</Modal>  
-
 
 
     </View>
