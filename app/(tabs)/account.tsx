@@ -31,6 +31,7 @@ import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
+import * as Location from 'expo-location'
 
 type Profile = {
   bio: string;
