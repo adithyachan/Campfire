@@ -3,21 +3,61 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 import { Alert } from "react-native";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImagePlusIcon, UploadIcon, XIcon } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "~/utils/supabase";
+
+import CollageLayout from 'react-native-collage-layout';
+import ViewShot from "react-native-view-shot";
 import * as Location from 'expo-location'
+
+interface ImageObj {
+  uri: string,
+  aspectRatio: number
+}
+
+
+
 
 export default function CreatePostModal(props: { isOpen: boolean, onClose: () => void, groupID: string }) {
 
   const [imagePreview, setImagePreview] = useState("");
   const [caption, setCaption] = useState("");
+
+  const [images, setImages] = useState<ImageObj[]>([]);
+  const [isCollage, setIsCollage] = useState(false);
+  const collageRef = useRef(null);
   const [isPublicPost, setIsPublicPost] = useState(true);
+  
   const onClose = () => {
     setImagePreview("");
     setCaption("");
+    setImages([]);
     props.onClose();
+  }
+
+  const handleCollage = async() => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Camera roll permissions are required to change your profile picture.');
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      selectionLimit: 3,
+      aspect: [1, 1],
+      quality: 0.25,
+    });
+  
+    if (result.canceled) {
+      return;
+    }
+    console.log(result.assets.map(asset => asset.uri), result.assets.length);
+    setImages(result.assets.map(asset => ({ uri: asset.uri, aspectRatio: 1.5 })));
+    setIsCollage(true);
   }
 
   const handlePickImage = async () => {
@@ -40,7 +80,8 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
 
     const img = result.assets[0];
     setImagePreview(img.uri);
-  }
+    setIsCollage(false);
+  } 
 
   const handlePostUpload = async () => {
     const userDataString = await AsyncStorage.getItem('userData');
@@ -52,7 +93,14 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
     
     const userData = JSON.parse(userDataString);
     const userId = userData.session.user.id;
-    const base64 = await FileSystem.readAsStringAsync(imagePreview, { encoding: 'base64' });
+  
+    // Capture the collage and get its URI
+    let uri = imagePreview;
+    if (isCollage && collageRef.current) {
+      uri = await (collageRef.current as any).capture();
+    }
+  
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
     const contentType = 'image/png';
 
     let { status } = await Location.requestForegroundPermissionsAsync();
@@ -81,13 +129,13 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
           is_public: isPublicPost
         })
         .select()
-
+  
       if (createError) {
         throw new Error(createError.message);
       }
-
+  
       const filePath = `${postData![0].post_id}.png`;
-
+  
       const { error: uploadError } = await supabase.storage.from('post_media').upload(filePath, decode(base64), {
         contentType,
         cacheControl: '3600',
@@ -114,6 +162,7 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
     } catch (error) {
       console.error('Error uploading post:', error);
     }
+    setIsCollage(false);
   }
 
   const handleTogglePublicPost = () => {
@@ -135,16 +184,27 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
             </ModalCloseButton>
           </ModalHeader>
           <ModalBody>
-            {
-              imagePreview ? 
-              <Box h="$64" w="$full" justifyContent="center" alignItems="center">
-                <Image alt="image upload preview" size="2xl" source={{ uri: imagePreview }} />
-                <Button onPress={ handlePickImage } mt="-$12">
-                  <ButtonIcon as={ ImagePlusIcon }/>
-                  <ButtonText> Select Photo</ButtonText>
-                </Button>
-              </Box> : 
-              <Box 
+          {
+              isCollage ? (
+                images.length > 0 &&
+                <ViewShot ref={collageRef} options={{ format: "jpg", quality: 0.9 }}>
+                <CollageLayout
+                  spacing={2}
+                  images={images}
+                  layoutMaxHeight={200}
+                />
+                </ViewShot>
+              ) : (
+                imagePreview ?
+                <Box h="$64" w="$full" justifyContent="center" alignItems="center">
+                  <Image alt="image upload preview" size="2xl" source={{ uri: imagePreview }} />
+                  <Button onPress={ handlePickImage } mt="-$12">
+                    <ButtonIcon as={ ImagePlusIcon }/>
+                    <ButtonText> Select Photo</ButtonText>
+                  </Button>
+                </Box>
+                :
+                <Box 
                 borderWidth="$1"
                 h="$64"
                 borderColor="$primary500"
@@ -158,6 +218,7 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
                   <ButtonText> Select Photo</ButtonText>
                 </Button>
               </Box>
+              )
             }
             <FormControl mt="$5">
               <FormControlLabel mb="$1">
@@ -185,12 +246,16 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
             </FormControl>
             
           </ModalBody>
-          <ModalFooter justifyContent="space-around">
+          <ModalFooter flexDirection="row" justifyContent="space-around" mb={-5}>
             <Button onPress={handlePostUpload}>
               <ButtonIcon as={UploadIcon} />
               <ButtonText> Post</ButtonText>
             </Button>
-            <Button variant="outline" bgColor="$red50" borderColor="$red400" onPress={onClose}>
+              <Button onPress={handleCollage}>
+              <ButtonIcon as={XIcon} />
+              <ButtonText> Collage </ButtonText>
+              </Button>
+            <Button variant="outline" bgColor="$red50" borderColor="$red400" onPress={onClose} marginTop={20} >
               <ButtonIcon color="$red400" as={XIcon} />
               <ButtonText color="$red400"> Cancel</ButtonText>
             </Button>
