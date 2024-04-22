@@ -15,7 +15,7 @@ const myDateParse = (s: string) => {
   return new Date(Date.UTC(...b));
 }
 
-export default function PostCard(props: { postData: { post_id: string, user_id: string, group_id: string, media_url: string, post_caption: string, created_at: string } }) {
+export default function PostCard(props: { postData: { post_id: string, user_id: string, group_id: string, media_url: string, post_caption: string, created_at: string, city: string} }) {
 
   const postData = props.postData
 
@@ -207,16 +207,18 @@ export default function PostCard(props: { postData: { post_id: string, user_id: 
         <VStack>
           <HStack mx="$5" mb="$3">
             <Box w="$full" flexDirection="row" justifyContent="space-between">
-              <HStack space="md">
-                <Avatar>
-                  <AvatarFallbackText>{ posterData?.username }</AvatarFallbackText>
-                  <AvatarImage alt="avatar image" source={{ uri: posterData?.avatar_url }} />
-                </Avatar>
-                <VStack>
-                  <Heading size="sm">{ posterData?.username }</Heading>
-                  <Text size="sm">{ posterGroupData }</Text>
-                </VStack>
-              </HStack>
+              <Pressable onPress={() => router.push(`/account/${userID}`)}>
+                <HStack space="md">
+                  <Avatar>
+                    <AvatarFallbackText>{ posterData?.username }</AvatarFallbackText>
+                    <AvatarImage alt="avatar image" source={{ uri: posterData?.avatar_url }} />
+                  </Avatar>
+                  <VStack>
+                    <Heading size="sm">{ posterData?.username }</Heading>
+                    <Text size="sm">{ posterGroupData }</Text>
+                  </VStack>
+                </HStack>
+              </Pressable>
               <Button 
                 variant={`solid`} 
                 borderColor={userID && likeData && likeData.includes(userID) ? `$yellow500` : ""} 

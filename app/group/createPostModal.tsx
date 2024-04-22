@@ -1,4 +1,4 @@
-import { Modal, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, ModalFooter, CloseIcon, Heading, Icon, ModalBody, Image, Box, Button, ButtonText, ButtonIcon, Input, InputField, FormControl, FormControlLabel, FormControlHelper, FormControlHelperText, FormControlLabelText } from "@gluestack-ui/themed";
+import { Switch, Text, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, ModalFooter, CloseIcon, Heading, Icon, ModalBody, Image, Box, Button, ButtonText, ButtonIcon, Input, InputField, FormControl, FormControlLabel, FormControlHelper, FormControlHelperText, FormControlLabelText } from "@gluestack-ui/themed";
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
@@ -7,22 +7,29 @@ import { useEffect, useRef, useState } from "react";
 import { ImagePlusIcon, UploadIcon, XIcon } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "~/utils/supabase";
+
 import CollageLayout from 'react-native-collage-layout';
 import ViewShot from "react-native-view-shot";
+import * as Location from 'expo-location'
 
 interface ImageObj {
   uri: string,
   aspectRatio: number
 }
 
+
+
+
 export default function CreatePostModal(props: { isOpen: boolean, onClose: () => void, groupID: string }) {
 
   const [imagePreview, setImagePreview] = useState("");
   const [caption, setCaption] = useState("");
+
   const [images, setImages] = useState<ImageObj[]>([]);
   const [isCollage, setIsCollage] = useState(false);
   const collageRef = useRef(null);
-
+  const [isPublicPost, setIsPublicPost] = useState(true);
+  
   const onClose = () => {
     setImagePreview("");
     setCaption("");
@@ -49,7 +56,6 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
       return;
     }
     console.log(result.assets.map(asset => asset.uri), result.assets.length);
-    //console.log(result.assets.map(asset => ({ uri: asset.uri, aspectRatio: 1.5 })));
     setImages(result.assets.map(asset => ({ uri: asset.uri, aspectRatio: 1.5 })));
     setIsCollage(true);
   }
@@ -96,6 +102,20 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
   
     const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
     const contentType = 'image/png';
+
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      console.log('Permission to access location was denied');
+      return;
+    }
+    let location = await Location.getCurrentPositionAsync({});
+    let latitude = location.coords.latitude
+    let longitude = location.coords.longitude
+    let reverseGeo = await Location.reverseGeocodeAsync({latitude, longitude})
+    console.log(location)
+    console.log(reverseGeo);
+    let geo_city = reverseGeo[0].city
+    console.log(`{post city: ${geo_city}`)
   
     try {
       const { data: postData , error: createError } = await supabase
@@ -104,7 +124,9 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
           user_id: userId,
           group_id: props.groupID,
           media_url: "",
-          post_caption: caption
+          post_caption: caption,
+          city: geo_city,
+          is_public: isPublicPost
         })
         .select()
   
@@ -143,6 +165,10 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
     setIsCollage(false);
   }
 
+  const handleTogglePublicPost = () => {
+    setIsPublicPost(! isPublicPost)
+    console.log(isPublicPost)
+  }
   return (
     <>
       <Modal
@@ -213,7 +239,12 @@ export default function CreatePostModal(props: { isOpen: boolean, onClose: () =>
                   onChangeText={setCaption} 
                 />
               </Input>
+
+              <Text mt="$2">Public Post</Text>
+              <Switch mt="$1" onToggle={handleTogglePublicPost} value={isPublicPost}/>
+              
             </FormControl>
+            
           </ModalBody>
           <ModalFooter flexDirection="row" justifyContent="space-around" mb={-5}>
             <Button onPress={handlePostUpload}>
