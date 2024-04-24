@@ -14,6 +14,7 @@ import {
   Image,
   Box,
   Button,
+  AtSignIcon,
   ButtonText,
   ButtonIcon,
   Input,
@@ -88,6 +89,7 @@ export default function CreatePostModal(props: {
     setImagePreview('');
     setCaption('');
     setImages([]);
+    setSelectedTags([]);
     props.onClose();
   };
 
@@ -147,6 +149,11 @@ export default function CreatePostModal(props: {
   };
 
   const handlePostUpload = async () => {
+    if (selectedTags.length === 0) {
+      Alert.alert('Tag Required', 'You must tag at least one member to create a post.');
+      return;
+    }
+
     const userDataString = await AsyncStorage.getItem('userData');
     if (!userDataString) {
       Alert.alert('Error', 'User data not found.');
@@ -350,18 +357,23 @@ export default function CreatePostModal(props: {
               <Text mt="$2">Public Post</Text>
               <Switch mt="$1" onToggle={handleTogglePublicPost} value={isPublicPost} />
             </FormControl>
+            {selectedTags.length === 0 && imagePreview && (
+              <Text color="red" mt="$2" textAlign="center">
+                Please tag at least one member to proceed with the post.
+              </Text>
+            )}
           </ModalBody>
           <ModalFooter flexDirection="row" justifyContent="space-around" mb={-5}>
-            <Button onPress={handlePostUpload}>
+            <Button onPress={handlePostUpload} isDisabled={selectedTags.length === 0}>
               <ButtonIcon as={UploadIcon} />
-              <ButtonText> Post</ButtonText>
+              <ButtonText>Post</ButtonText>
             </Button>
             <Button onPress={handleCollage}>
               <ButtonIcon as={XIcon} />
               <ButtonText> Collage</ButtonText>
             </Button>
             <Button onPress={() => setShowTagModal(true)} isDisabled={!imagePreview}>
-              <ButtonIcon as={XIcon} />
+              <ButtonIcon as={AtSignIcon} />
               <ButtonText> Tag</ButtonText>
             </Button>
             <Button
