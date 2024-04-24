@@ -23,7 +23,14 @@ import {
   VStack,
   ToastDescription,
   HStack,
-  Switch
+  Switch,
+  Fab,
+  BellIcon,
+  FabIcon,
+  Heading,
+  Icon,
+  CloseIcon,
+  ScrollView
 } from '@gluestack-ui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../utils/supabase'; 
@@ -32,6 +39,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 import * as Location from 'expo-location'
+import NotificationRecord from '~/components/notificationRecord';
 
 type Profile = {
   bio: string;
@@ -40,6 +48,15 @@ type Profile = {
   lastName: string;
   notifications: boolean;
 };
+
+type Notification = {
+  notification_id: string,
+  created_at: string,
+  user_id: string, 
+  title: string,
+  body: string, 
+  event: string
+}
 
 const AccountScreen = () => {
   const toast = useToast()
@@ -109,8 +126,10 @@ const AccountScreen = () => {
     .subscribe()
 
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>();
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [showBioModal, setShowBioModal] = useState(false);
+  const [showNotifModal, setShowNotifModal] = useState(false);
   const [newBio, setNewBio] = useState('');
   const [switchState, setSwitchState] = useState<boolean>();
   
@@ -127,20 +146,34 @@ const AccountScreen = () => {
 				const userData = JSON.parse(userDataString);
 				const userId = userData.session.user.id;
 	
-				let { data, error } = await supabase
+				let { data: profileData, error: profileError } = await supabase
 					.from('profiles')
 					.select('bio, avatar_url, first_name, last_name, notifications')
 					.eq('user_id', userId)
 					.single();
 		
 				setProfile({
-					bio: data?.bio ?? "Hi! I'm new to Campfire!",
-					avatarUrl: data?.avatar_url,
-					firstName: data?.first_name ?? '',
-					lastName: data?.last_name ?? '',
-          notifications: data?.notifications
+					bio: profileData?.bio ?? "Hi! I'm new to Campfire!",
+					avatarUrl: profileData?.avatar_url,
+					firstName: profileData?.first_name ?? '',
+					lastName: profileData?.last_name ?? '',
+          notifications: profileData?.notifications
 
 				});
+
+        let {data: notifData, error: notifError} = await supabase
+          .from('notifications')
+          .select()
+          .eq('user_id', userId)
+          .limit(10)
+
+        let sortedNotifs = notifData?.sort((a, b) => {
+          const dateA = new Date(a.created_at).getTime()
+          const dateB = new Date(b.created_at).getTime()
+          return dateB - dateA
+        })
+
+        setNotifications(sortedNotifs)
         
 			} catch (error: any) {
 				console.error('Error fetching profile:', error.message);
@@ -148,7 +181,7 @@ const AccountScreen = () => {
 				setLoading(false);
 			}
 		};
-	
+    
 		fetchProfile();
     
 	}, []);
@@ -264,19 +297,19 @@ const AccountScreen = () => {
       console.error("Failed to update bio:", error);
       Alert.alert("Error", "Failed to update your bio.");
     } finally {
-      setShowModal(false);
+      setShowBioModal(false);
     }
   };
 const bioChangeModal = (
   <Modal
-    isOpen={showModal}
-    onClose={() => setShowModal(false)}
+    isOpen={showBioModal}
+    onClose={() => setShowBioModal(false)}
   >
     <ModalBackdrop />
     <ModalContent>
       <ModalHeader>
         <Text>Update Your Bio</Text>
-        <ModalCloseButton onPress={() => setShowModal(false)} />
+        <ModalCloseButton onPress={() => setShowBioModal(false)} />
       </ModalHeader>
       <ModalBody>
         <Input variant="outline" size="md" isDisabled={false} isInvalid={false} isReadOnly={false}>
@@ -290,7 +323,7 @@ const bioChangeModal = (
       </ModalBody>
       <ModalFooter>
         <Button
-          onPress={() => setShowModal(false)}
+          onPress={() => setShowBioModal(false)}
           style={{ marginRight: 8 }}
           action="secondary">
           <ButtonText>Cancel</ButtonText>
@@ -409,7 +442,7 @@ const bioChangeModal = (
         size="md"
         variant="solid"
         action="secondary"
-        onPress={() => setShowModal(true)}
+        onPress={() => setShowBioModal(true)}
         style={styles.button}
       >
         <ButtonText>Change Bio</ButtonText>
@@ -443,6 +476,29 @@ const bioChangeModal = (
         <ButtonText>Delete Account</ButtonText>
       </Button>
       {bioChangeModal}
+      <Fab placement="bottom right" onPress={() => {setShowNotifModal(true)}}>
+        <FabIcon as={BellIcon}/>
+      </Fab>
+      <Modal isOpen={showNotifModal} onClose={() => setShowNotifModal(false)}>
+        <ModalBackdrop />
+        <ModalContent>
+          <ModalHeader>
+            <Heading size="md">Notifications</Heading>
+            <ModalCloseButton>
+              <Icon as={CloseIcon} />
+            </ModalCloseButton>
+          </ModalHeader>
+          <ModalBody>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {notifications?.map((notificationData) => (
+                
+                <NotificationRecord key={notificationData.notification_id} notification={notificationData} />
+                
+              ))}
+            </ScrollView>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </View>
   );
 }
