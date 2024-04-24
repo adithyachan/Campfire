@@ -45,11 +45,7 @@ export default function searchAccountScreen () {
     const [groups, setGroups] = useState<{ group_id: string, name: string, bio: string, num_members: number }[]>([]);
     const [taggedPosts, setTaggedPosts] = useState<any[]>([]);
 
-    console.log(items)
-
-    useEffect(() => {
-      console.log("TAGGED POSTS", taggedPosts)
-    }, [taggedPosts])
+    console.log("ITEMS:", items)
 
     useEffect(() => {
         navigation.setOptions({ 
@@ -83,6 +79,7 @@ export default function searchAccountScreen () {
                       console.log(groupsError);
                       return;
                     }
+                    console.log("GROUPS", groups)
                     
                     const groupIds = groups.map(group => group.group_id);
                     
@@ -97,7 +94,7 @@ export default function searchAccountScreen () {
                       console.log(userData);
                     }
                     setGroups(userData as { group_id: string, name: string, bio: string, num_members: number }[]);
-                    
+
                     // Fetch posts that are in these groups
                     const { data: postsData, error: postsError } = await supabase
                       .from('posts')
@@ -109,11 +106,47 @@ export default function searchAccountScreen () {
                       return;
                     }
 
-                    console.log("POSTS", postsData)
-                    // Filter posts to only include ones where the user is tagged
-                    const userTaggedPosts = postsData.filter(post => post.tags.includes(items.id));
+                    console.log("POSTS, items.id", postsData, items.id)
 
-                    setTaggedPosts(userTaggedPosts);
+                    // Filter posts to only include ones where the user is tagged
+                    const userTaggedPosts = postsData.filter(post => post.tags && post.tags.includes(items.id));
+                    // Fetch group names for each group_id in userTaggedPosts
+
+                    if (userTaggedPosts.length > 0) {
+                    const groupNames = await Promise.all(userTaggedPosts.map(async (post) => {
+                      const { data: groupData, error: groupError } = await supabase
+                        .from('groups')
+                        .select('name')
+                        .eq('group_id', post.group_id)
+                        .single();
+
+                      if (groupError) {
+                        console.log(groupError);
+                        return 'Unknown Group';
+                      }
+
+                      return groupData.name;
+                    }));
+                    
+                    // Add group name to each post
+                    const postsWithGroupNames = userTaggedPosts.map((post, index) => ({
+                      ...post,
+                      groupName: groupNames[index],
+                    }));
+
+                    // Group postsWithGroupNames by groupName
+                    const groupedPosts = postsWithGroupNames.reduce((groups, post) => {
+                      (groups[post.groupName] = groups[post.groupName] || []).push(post);
+                      return groups;
+                    }, {});
+
+                    // Map each group to an object with a title and data property
+                    const sections = Object.entries(groupedPosts).map(([groupName, posts]) => ({
+                      title: groupName,
+                      data: posts,
+                    }));
+                    setTaggedPosts(sections);
+                    }
 
                     setProfile({
                         bio: data?.bio ?? "Hi! I'm new to Campfire!",
@@ -188,17 +221,32 @@ export default function searchAccountScreen () {
       </Box>
       <Divider style={styles.divider} />
       
-        
+      {taggedPosts && taggedPosts.length > 0 ? (
       <Text justifyContent='center' mb={"$1"}>
-        Tagged Posts
+        Tagged Posts: {taggedPosts.length}
       </Text>
+      ) : 
+      (
+      <Text justifyContent='center' mb={"$1"}>
+        No Tagged Posts
+      </Text>
+      )}
+
       {taggedPosts && taggedPosts.length > 0 && (
+        
       <View style={{flex: 1, height: '100%', width: '100%'}}>
       <SectionList
         stickySectionHeadersEnabled={false}
         sections={taggedPosts}
         keyExtractor={(item : any, index) => item.post_id}
         renderItem={({ item }: { item: any }) => (
+          <Pressable onPress={() => {
+            console.log("POST GROUP ID", item.group_id)
+            router.push({
+              pathname: "/group/[id]",
+              params: {id: item.group_id}
+            })
+          }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Image
               source={{ uri: item.media_url }}
@@ -208,6 +256,7 @@ export default function searchAccountScreen () {
               {item.post_caption}
             </Text>
           </View>
+          </Pressable>
         )}
         renderSectionHeader={({ section }: { section: any }) => (
           <Center>

@@ -478,9 +478,9 @@ export default function GroupScreen() {
         <Box flexDirection="row" justifyContent="space-between" p={'$3'}>
           <VStack>
             <Heading size="xl" mb="$1">
-              {routeParams.name}
+              {groupData?.name}
             </Heading>
-            <Text size="sm">{routeParams.bio}</Text>
+            <Text size="sm">{groupData?.bio}</Text>
           </VStack>
           <GroupActionButton />
         </Box>
@@ -547,7 +547,7 @@ export default function GroupScreen() {
       alert('Welcome to ' + routeParams.name);
     }
     navigation.setOptions({
-      headerTitle: routeParams.name,
+      headerTitle: groupData?.name,
       headerBackTitle: 'Home',
       headerRight: () => (isMember && !isGroupPublic ? shareButton : null),
     });
