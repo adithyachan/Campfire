@@ -301,7 +301,8 @@ export default function CreatePostModal(props: {
                 isVisible={showTagModal}
                 onClose={() => setShowTagModal(false)}
                 groupMembers={groupMembers}
-                onTagsConfirmed={handleTagsConfirmed} // Pass the callback function
+                initialSelectedMembers={selectedTags}
+                onTagsConfirmed={handleTagsConfirmed}
               />
             )}
             {isCollage ? (

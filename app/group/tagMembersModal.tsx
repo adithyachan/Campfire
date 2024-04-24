@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '~/utils/supabase';
 import {
   Modal,
@@ -30,7 +30,8 @@ interface TagMembersModalProps {
   isVisible: boolean;
   onClose: () => void;
   groupMembers: Profile[];
-  onTagsConfirmed: (selectedMembers: string[]) => void; // New prop for passing selected members back
+  onTagsConfirmed: (selectedMembers: string[]) => void;
+  initialSelectedMembers: string[]; // Add this line
 }
 
 const TagMembersModal = ({
@@ -38,8 +39,15 @@ const TagMembersModal = ({
   onClose,
   groupMembers,
   onTagsConfirmed,
+  initialSelectedMembers,
 }: TagMembersModalProps) => {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (isVisible) {
+      setSelectedMembers(initialSelectedMembers);
+    }
+  }, [initialSelectedMembers, isVisible]);
 
   const toggleTagMember = (userId: string) => {
     setSelectedMembers((prevSelected) =>
