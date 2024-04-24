@@ -5,8 +5,8 @@ import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('prabhav2833@gmail.com');
+  const [password, setPassword] = useState('Campfire@3');
 
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');

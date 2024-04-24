@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "~/utils/supabase";
 import * as Location from 'expo-location'
 import PostCard from "~/components/postCard";
+import { useNavigation } from "expo-router";
 
 type Post = {
 	likes: any;
@@ -20,7 +21,7 @@ type Post = {
 }
 
 export default function ExploreFeedScreen() {
-
+	const navigation = useNavigation()
 	const [clicked, setClicked] = useState(false);
 	const [searchPhrase, setSearchPhrase] = useState('');
 	const [activeButton, setActiveButton] = useState('users');
@@ -65,11 +66,9 @@ export default function ExploreFeedScreen() {
 		setPosts(sortedPosts)
 		console.log(`POST DATA FOR EXPLORE FEED: ${JSON.stringify(postData)}`)
 	}
-	useEffect(() => {
-		retrieveData();
-	}, []);
 
 	useEffect(() => {
+		retrieveData();
 		getPostsByGeo();
 	}, [refreshCount])
 
@@ -102,6 +101,9 @@ export default function ExploreFeedScreen() {
 	}
 
 	if (! searchView) {
+		navigation.setOptions({
+			headerShown: true
+		  });
 		return (
 			<>
 				<Center mt="$3" mb="$4">
@@ -122,8 +124,10 @@ export default function ExploreFeedScreen() {
 			</>
 		);
 	} else {
+		navigation.setOptions({
+			headerShown: false
+		  });
 		return (
-
 			<SafeAreaView style={styles.root}>
 				<SearchBar
 					clicked={clicked}
