@@ -69,6 +69,7 @@ export default function CreatePostModal(props: {
   const [isPublicPost, setIsPublicPost] = useState(true);
   const [groupMembers, setGroupMembers] = useState<Profile[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showLocation, setShowLocation] = useState(true);
 
   const routeParams = useLocalSearchParams();
 
@@ -198,6 +199,7 @@ export default function CreatePostModal(props: {
           city: geo_city,
           is_public: isPublicPost,
           tags: selectedTags,
+          show_location: showLocation,
         })
         .select();
 
@@ -354,8 +356,17 @@ export default function CreatePostModal(props: {
                 <InputField placeholder="Your caption" value={caption} onChangeText={setCaption} />
               </Input>
 
-              <Text mt="$2">Public Post</Text>
-              <Switch mt="$1" onToggle={handleTogglePublicPost} value={isPublicPost} />
+              <Box flexDirection="row" justifyContent="space-between" alignItems="center" mt="$4">
+                <Box alignItems="center" flex={1}>
+                  <Text>Public Post</Text>
+                  <Switch onToggle={handleTogglePublicPost} value={isPublicPost} />
+                </Box>
+
+                <Box alignItems="center" flex={1}>
+                  <Text>Include Location</Text>
+                  <Switch onToggle={() => setShowLocation(!showLocation)} value={showLocation} />
+                </Box>
+              </Box>
             </FormControl>
             {selectedTags.length === 0 && imagePreview && (
               <Text color="red" mt="$2" textAlign="center">

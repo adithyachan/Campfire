@@ -56,6 +56,7 @@ export default function PostCard(props: {
     post_caption: string;
     created_at: string;
     city: string;
+    show_location: boolean;
   };
 }) {
   const postData = props.postData;
@@ -286,6 +287,7 @@ export default function PostCard(props: {
                   <VStack>
                     <Heading size="sm">{posterData?.username}</Heading>
                     <Text size="sm">{posterGroupData}</Text>
+                    {props.postData.show_location && <Text size="sm">{props.postData.city}</Text>}
                   </VStack>
                 </HStack>
               </Pressable>
