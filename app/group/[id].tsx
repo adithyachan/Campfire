@@ -78,6 +78,7 @@ export default function GroupScreen() {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingCheckMembership, setLoadingCheckMembership] = useState(true);
   const [loadingSubscribers, setLoadingSubcribers] = useState(true);
+  const [bannedMembers, setBannedMembers] = useState<Profile[]>([]);
 
   ////// Database Queries ///////
   const getCurrentUserID = async () => {
@@ -124,6 +125,63 @@ export default function GroupScreen() {
     }
 
     return usersInGroup.map((user) => user.profile_id);
+  };
+
+  // retrieve banned members
+  const getBannedMembers = async () => {
+    try {
+      const { data: groupData, error: groupError } = await supabase
+        .from('groups')
+        .select('banlist')
+        .eq('group_id', groupID)
+        .single();
+
+      if (groupError) throw groupError;
+
+      console.log('Banlist:', groupData?.banlist); // Debugging: Check the banlist
+
+      const bannedUserIds = groupData?.banlist || [];
+      if (bannedUserIds.length === 0) {
+        console.log('No banned members.');
+        setBannedMembers([]);
+        return;
+      }
+
+      const { data: bannedProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, username, bio, avatar_url')
+        .in('user_id', bannedUserIds);
+
+      if (profilesError) throw profilesError;
+
+      console.log('Banned Profiles:', bannedProfiles); // Debugging: Check the profiles retrieved
+      setBannedMembers(bannedProfiles);
+    } catch (error) {
+      console.error('Failed to fetch banned members:', error);
+      alert('Failed to fetch banned members.');
+    }
+  };
+
+  // unban a member
+  const handleUnbanMember = async (profileId: string) => {
+    const updatedBanlist = bannedMembers
+      .filter((b) => b.user_id !== profileId)
+      .map((b) => b.user_id);
+
+    try {
+      const { error: updateGroupError } = await supabase
+        .from('groups')
+        .update({ banlist: updatedBanlist })
+        .eq('group_id', groupID);
+
+      if (updateGroupError) throw updateGroupError;
+
+      await getBannedMembers(); // Refresh the list of banned members
+      alert('Member has been unbanned.');
+    } catch (error) {
+      console.error('Error during unban operation:', error);
+      alert('An error occurred while trying to unban the member.');
+    }
   };
 
   // Retrieves the group share code
@@ -358,10 +416,10 @@ export default function GroupScreen() {
   );
 
   const manageGroupButton = (
-    <VStack mt="$4" alignItems="center">
+    <VStack mb="$5" alignItems="center">
       <Box width={'35%'}>
         {/* Updated Button onPress to directly set manageGroupModalVisible */}
-        <Button onPress={() => setManageGroupModalVisible(true)} mt="$2">
+        <Button onPress={() => setManageGroupModalVisible(true)}>
           <ButtonText>Manage Group</ButtonText>
         </Button>
       </Box>
@@ -371,6 +429,8 @@ export default function GroupScreen() {
         groupMembers={groupMembers}
         handleKickMember={handleKickMember}
         handleBanMember={handleBanMember}
+        handleUnbanMember={handleUnbanMember}
+        bannedMembers={bannedMembers}
         groupData={groupData}
       />
     </VStack>
@@ -563,6 +623,7 @@ export default function GroupScreen() {
       checkMembership();
       getCode();
       getMembers();
+      getBannedMembers();
       getPosts();
       getSubscribers();
     } catch (error) {
