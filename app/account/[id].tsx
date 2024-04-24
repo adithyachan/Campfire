@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert, FlatList, Pressable } from 'react-native';
+import { Image, View, StyleSheet, ActivityIndicator, Alert, FlatList, Pressable } from 'react-native';
 import {
   Modal,
   Divider,
@@ -35,25 +35,6 @@ type Profile = {
   num_groups: number;
 };
 
-const data = [
-  {
-    title: 'Group 1',
-    data: [
-      { id: '1', content: 'Post 1', taggedUsers: ['User 1', 'User 2'] },
-      { id: '2', content: 'Post 2', taggedUsers: ['User 1', 'User 3'] },
-      // more posts...
-    ],
-  },
-  {
-    title: 'Group 2',
-    data: [
-      { id: '3', content: 'Post 3', taggedUsers: ['User 2', 'User 3'] },
-      { id: '4', content: 'Post 4', taggedUsers: ['User 1', 'User 2', 'User 3'] },
-      // more posts...
-    ],
-  },
-  // more groups...
-];
 
 export default function searchAccountScreen () {
     const navigation = useNavigation();
@@ -62,10 +43,15 @@ export default function searchAccountScreen () {
     const [loading, setLoading] = useState(true);
     const [showGroups, setShowGroups] = useState(false);
     const [groups, setGroups] = useState<{ group_id: string, name: string, bio: string, num_members: number }[]>([]);
+    const [taggedPosts, setTaggedPosts] = useState<any[]>([]);
 
     console.log(items)
-    useEffect(() => {
 
+    useEffect(() => {
+      console.log("TAGGED POSTS", taggedPosts)
+    }, [taggedPosts])
+
+    useEffect(() => {
         navigation.setOptions({ 
             headerTitle: "Account",
             headerBackTitle: 'Home',
@@ -111,6 +97,23 @@ export default function searchAccountScreen () {
                       console.log(userData);
                     }
                     setGroups(userData as { group_id: string, name: string, bio: string, num_members: number }[]);
+                    
+                    // Fetch posts that are in these groups
+                    const { data: postsData, error: postsError } = await supabase
+                      .from('posts')
+                      .select('*')
+                      .in('group_id', groupIds);
+
+                    if (postsError) {
+                      console.log(postsError);
+                      return;
+                    }
+
+                    console.log("POSTS", postsData)
+                    // Filter posts to only include ones where the user is tagged
+                    const userTaggedPosts = postsData.filter(post => post.tags.includes(items.id));
+
+                    setTaggedPosts(userTaggedPosts);
 
                     setProfile({
                         bio: data?.bio ?? "Hi! I'm new to Campfire!",
@@ -137,6 +140,7 @@ export default function searchAccountScreen () {
   if (!profile) {
     return null;
   }
+  
 
   return (
     <View style={styles.container}>
@@ -184,21 +188,26 @@ export default function searchAccountScreen () {
       </Box>
       <Divider style={styles.divider} />
       
-      <Text justifyContent='center'>
+        
+      <Text justifyContent='center' mb={"$1"}>
         Tagged Posts
       </Text>
-
-      <Center w="100%">
+      {taggedPosts && taggedPosts.length > 0 && (
+      <View style={{flex: 1, height: '100%', width: '100%'}}>
       <SectionList
-        mb="$4"
-        sections={data}
-        keyExtractor={(item : any, index) => item.id}
+        stickySectionHeadersEnabled={false}
+        sections={taggedPosts}
+        keyExtractor={(item : any, index) => item.post_id}
         renderItem={({ item }: { item: any }) => (
-          <Center py="$4" >
-            <Text color="$black">
-              {item.content}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Image
+              source={{ uri: item.media_url }}
+              style={{ width: 50, height: 50, marginRight: 10 }}
+            />
+            <Text numberOfLines={1} ellipsizeMode='tail' style={{ flex: 1 }}>
+              {item.post_caption}
             </Text>
-          </Center>
+          </View>
         )}
         renderSectionHeader={({ section }: { section: any }) => (
           <Center>
@@ -208,7 +217,8 @@ export default function searchAccountScreen () {
           </Center>
         )}
       />
-    </Center>
+    </View>
+      )}
 
       <Modal
 				isOpen={showGroups}
