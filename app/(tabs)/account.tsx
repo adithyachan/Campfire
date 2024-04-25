@@ -62,68 +62,37 @@ type Notification = {
 const AccountScreen = () => {
   const toast = useToast()
   supabase
-    .channel('profile_subscriptions')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'profile_subscriptions' }, async (payload) => {
+    .channel('notifications')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, async (payload) => {
       const insertedRow = payload.new
       console.log(`new row inserted: ${JSON.stringify(insertedRow)}`)
-      
       const {data: {user}}  = await supabase.auth.getUser();
-      const { data: groupMembersData, error: groupMembersError} = await supabase
-        .from('group_users')
-        .select('*')
-        .eq('group_id', insertedRow.group_id)
-        .eq('profile_id', user?.id)
-
-      if (groupMembersError) {
-        console.log(groupMembersError);
-        return;
-      }
       const {data: notificationData, error: notificationError} = await supabase
-      .from('profiles')
-      .select('notifications')
-      .eq('user_id', user?.id)
-      .single()
-
-      if (groupMembersData.length > 0 && notificationData?.notifications) {
-        console.log('current user is a member of a group that was just subscribed to')
-        const { data: subscriberProfileData, error: subscriberProfileError} = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('user_id', insertedRow.profile_id)
-        
-        const { data: subscribedGroupData, error: subscribedGroupError} = await supabase
-          .from('groups')
-          .select('name')
-          .eq('group_id', insertedRow.group_id)
-
-        const subscriberUsername = subscriberProfileData![0].username
-        const subscribedGroupName = subscribedGroupData![0].name
-
-        console.log(`SUBSCRIBER PROFILE USERNAME: ${subscriberUsername}`)
-        console.log(`SUBSCRIBER GROUP NAME: ${subscribedGroupName}`)
-
-        toast.show({
-          duration: 7000,
-          placement: "top",
-          render: ({ id }) => {
-            const toastId = "toast-" + id
-            return (
-              <Toast nativeID={toastId} action="attention" variant="solid">
-                <VStack space="xs">
-                  <ToastTitle>New Subscriber</ToastTitle>
-                  <ToastDescription>
-                    {subscriberUsername} just subscribed to {subscribedGroupName}!
-                  </ToastDescription>
-                </VStack>
-              </Toast>
-            )
-          },
-        })
-
-      }
-
+        .from('profiles')
+        .select('notifications')
+        .eq('user_id', user?.id)
+        .single()
       
-    })
+      if (notificationData?.notifications && user?.id === insertedRow.user_id)
+        toast.show({
+					duration: 7000,
+					placement: "top",
+					render: ({ id }) => {
+						const toastId = "toast-" + id
+						return (
+							<Toast nativeID={toastId} action="attention" variant="solid">
+								<VStack space="xs">
+									<ToastTitle>{insertedRow.title}</ToastTitle>
+									<ToastDescription>
+										{insertedRow.body}
+									</ToastDescription>
+								</VStack>
+							</Toast>
+						)
+					},
+				})
+      }
+    )
     .subscribe()
 
   const [profile, setProfile] = useState<Profile | null>(null);
