@@ -327,6 +327,7 @@ export default function CreatePostModal(props: {
                 groupMembers={groupMembers}
                 initialSelectedMembers={selectedTags}
                 onTagsConfirmed={handleTagsConfirmed}
+                groupId={props.groupID}
               />
             )}
             {isCollage ? (
