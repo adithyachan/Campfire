@@ -102,6 +102,7 @@ const AccountScreen = () => {
   const [showNotifModal, setShowNotifModal] = useState(false);
   const [newBio, setNewBio] = useState('');
   const [switchState, setSwitchState] = useState<boolean>();
+  const [user_id, setUser_id] = useState<string>();
   
   
   useEffect(() => {
@@ -115,6 +116,7 @@ const AccountScreen = () => {
 				}
 				const userData = JSON.parse(userDataString);
 				const userId = userData.session.user.id;
+        setUser_id(userId)
 	
 				let { data: profileData, error: profileError } = await supabase
 					.from('profiles')
@@ -377,6 +379,22 @@ const bioChangeModal = (
 
   }
 
+  const handleOpenNotifications = async () => {
+    let {data: notifData, error: notifError} = await supabase
+      .from('notifications')
+      .select()
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: false})
+      .limit(10)
+
+    let sortedNotifs = notifData?.sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime()
+      const dateB = new Date(b.created_at).getTime()
+      return dateB - dateA
+    })
+    setNotifications(sortedNotifs)
+    setShowNotifModal(true)
+  }
   return (
     <View style={styles.container}>
       <Text marginBottom={20} bold={true} size={'5xl'}>{`${profile.firstName} ${profile.lastName}`}</Text>
@@ -447,7 +465,7 @@ const bioChangeModal = (
         <ButtonText>Delete Account</ButtonText>
       </Button>
       {bioChangeModal}
-      <Fab placement="bottom right" onPress={() => {setShowNotifModal(true)}}>
+      <Fab placement="bottom right" onPress={() => {handleOpenNotifications()}}>
         <FabIcon as={BellIcon}/>
       </Fab>
       <Modal isOpen={showNotifModal} onClose={() => setShowNotifModal(false)}>
