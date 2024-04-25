@@ -55,7 +55,8 @@ type Notification = {
   user_id: string, 
   title: string,
   body: string, 
-  event: string
+  event: string,
+  redirect_to: string
 }
 
 const AccountScreen = () => {
@@ -165,6 +166,7 @@ const AccountScreen = () => {
           .from('notifications')
           .select()
           .eq('user_id', userId)
+          .order('created_at', { ascending: false})
           .limit(10)
 
         let sortedNotifs = notifData?.sort((a, b) => {
@@ -492,7 +494,7 @@ const bioChangeModal = (
             <ScrollView showsVerticalScrollIndicator={false}>
               {notifications?.map((notificationData) => (
                 
-                <NotificationRecord key={notificationData.notification_id} notification={notificationData} />
+                <NotificationRecord key={notificationData.notification_id} notification={notificationData} setShowNotifModal={setShowNotifModal}/>
                 
               ))}
             </ScrollView>
