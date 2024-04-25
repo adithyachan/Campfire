@@ -14,6 +14,7 @@ import {
   MenuItem,
   Icon,
   MenuItemLabel,
+	Box
   Toast,
   ToastDescription,
   ToastTitle,
@@ -72,10 +73,9 @@ export default function HomeFeedScreen() {
     .subscribe()
   const navigation = useNavigation();
   const [refreshCount, setRefreshCount] = useState(0);
-  const [userId, setUserId] = useState<string>();
+  const [userId, setUserId] = useState<string>("");
   const [subscriptions, setSubscriptions] = useState<string[]>();
   const [posts, setPosts] = useState<Post[]>();
-  const [loading, setLoading] = useState(true);
   const [sortOption, setSortOption] = useState('Newest');
 
   const sortedPosts = useMemo(() => {
@@ -124,33 +124,32 @@ export default function HomeFeedScreen() {
     const { data: subscriptionData, error: subscriptionError } = await supabase
       .from('profile_subscriptions')
       .select('group_id')
-      .eq('profile_id', userId);
+      .eq('profile_id', await getCurrentUserID());
 
     const subscribedGroupIds = subscriptionData?.map((obj) => obj.group_id);
     console.log(`groups subscribed to: ${JSON.stringify(subscribedGroupIds)}`);
     setSubscriptions(subscribedGroupIds);
+		getSubscribedGroupPosts(subscribedGroupIds);
   };
 
-  const getSubscribedGroupPosts = async () => {
-    if (subscriptions) {
-      const { data: postData, error: postError } = await supabase
-        .from('posts')
-        .select()
-        .in('group_id', subscriptions);
-      // .in('group_id', ["2fb73a1b-b798-433e-a31d-8cacafd1884c"])
-      if (postError) {
-        throw new Error('POST DATA ERROR - ' + postError.message);
-      }
+  const getSubscribedGroupPosts = async (subscriptions: any[] | undefined) => {
+		const { data: postData, error: postError } = await supabase
+			.from('posts')
+			.select()
+			.in('group_id', subscriptions!);
+		// .in('group_id', ["2fb73a1b-b798-433e-a31d-8cacafd1884c"])
+		if (postError) {
+			throw new Error('POST DATA ERROR - ' + postError.message);
+		}
 
-      const postsWithLikes = await Promise.all(
-        postData.map(async (post) => {
-          const likeCount = await getLikeCount(post.post_id);
-          return { ...post, likes: likeCount };
-        })
-      );
+		const postsWithLikes = await Promise.all(
+			postData.map(async (post) => {
+				const likeCount = await getLikeCount(post.post_id);
+				return { ...post, likes: likeCount };
+			})
+		);
 
-      setPosts(postsWithLikes);
-    }
+		setPosts(postsWithLikes);
   };
   // Set the header options
   navigation.setOptions({
@@ -188,50 +187,40 @@ export default function HomeFeedScreen() {
   );
 
   useEffect(() => {
-    getCurrentUserID();
-    getUserSubscriptions();
-    getSubscribedGroupPosts();
-    setLoading(false);
-  }, [userId, refreshCount]);
+		getUserSubscriptions();
+  }, [refreshCount]);
 
-	if (loading) {
-		return (
-			<Spinner size='large' />
-		)
-	}
-	if (posts?.length === 0) {
 		return(
-			
 			<>
-				<View className={styles.container}>
-					<Text className={styles.title}>Your feed is empty!</Text>
-					<View className={styles.separator} />
-					<Text className={styles.subtext}>Subscribe to groups to see their posts here</Text>
-				</View>
-				<Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
-					<FabIcon as={RepeatIcon} />
-				</Fab>
-			</>
+				{ !posts ? <Box w="$full" h="$full" justifyContent='center' alignItems='center'><Spinner /></Box> : posts.length == 0 ?
+					<>
+						<View className={styles.container}>
+							<Text className={styles.title}>Your feed is empty!</Text>
+							<View className={styles.separator} />
+							<Text className={styles.subtext}>Subscribe to groups to see their posts here</Text>
+						</View>
+						<Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
+							<FabIcon as={RepeatIcon} />
+						</Fab> 
+					</> :
+					<>
+						<Center mt="$3" mb="$4">
+						<ScrollView showsVerticalScrollIndicator={false}>
+							{sortedPosts?.map((postData) => (
+								
+								<PostCard key={postData.post_id} postData={postData} updatePosts={getUserSubscriptions}/>
+								
+							))}
+						</ScrollView>
+					</Center>
+					<Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
+						<FabIcon as={RepeatIcon} />
+					</Fab>
+				</>
+			}
+		</>
 			
 		)
-	}
-	return(
-		<>	
-			<Center mt="$3" mb="$4">
-				<ScrollView showsVerticalScrollIndicator={false}>
-					{sortedPosts?.map((postData) => (
-						
-						<PostCard key={postData.post_id} postData={postData} updatePosts={getSubscribedGroupPosts}/>
-						
-					))}
-				</ScrollView>
-			</Center>
-			<Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
-				<FabIcon as={RepeatIcon} />
-			</Fab>
-		</>
-		
-	)
 	
   
     
