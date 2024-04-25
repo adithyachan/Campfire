@@ -14,7 +14,7 @@ import {
   MenuItem,
   Icon,
   MenuItemLabel,
-	Box
+  Box,
   Toast,
   ToastDescription,
   ToastTitle,
@@ -33,47 +33,50 @@ type Post = {
   created_at: string;
   city: string;
   show_location: boolean;
-	partner_id: string;
-	partner_username: string;
+  partner_id: string;
+  partner_username: string;
 };
 export default function HomeFeedScreen() {
-  const toast = useToast()
+  const toast = useToast();
   supabase
     .channel('notifications')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, async (payload) => {
-      const insertedRow = payload.new
-      console.log(`new row inserted: ${JSON.stringify(insertedRow)}`)
-      const {data: {user}}  = await supabase.auth.getUser();
-      const {data: notificationData, error: notificationError} = await supabase
-        .from('profiles')
-        .select('notifications')
-        .eq('user_id', user?.id)
-        .single()
-      
-      if (notificationData?.notifications && user?.id === insertedRow.user_id)
-        toast.show({
-					duration: 7000,
-					placement: "top",
-					render: ({ id }) => {
-						const toastId = "toast-" + id
-						return (
-							<Toast nativeID={toastId} action="attention" variant="solid">
-								<VStack space="xs">
-									<ToastTitle>{insertedRow.title}</ToastTitle>
-									<ToastDescription>
-										{insertedRow.body}
-									</ToastDescription>
-								</VStack>
-							</Toast>
-						)
-					},
-				})
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'notifications' },
+      async (payload) => {
+        const insertedRow = payload.new;
+        console.log(`new row inserted: ${JSON.stringify(insertedRow)}`);
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        const { data: notificationData, error: notificationError } = await supabase
+          .from('profiles')
+          .select('notifications')
+          .eq('user_id', user?.id)
+          .single();
+
+        if (notificationData?.notifications && user?.id === insertedRow.user_id)
+          toast.show({
+            duration: 7000,
+            placement: 'top',
+            render: ({ id }) => {
+              const toastId = 'toast-' + id;
+              return (
+                <Toast nativeID={toastId} action="attention" variant="solid">
+                  <VStack space="xs">
+                    <ToastTitle>{insertedRow.title}</ToastTitle>
+                    <ToastDescription>{insertedRow.body}</ToastDescription>
+                  </VStack>
+                </Toast>
+              );
+            },
+          });
       }
     )
-    .subscribe()
+    .subscribe();
   const navigation = useNavigation();
   const [refreshCount, setRefreshCount] = useState(0);
-  const [userId, setUserId] = useState<string>("");
+  const [userId, setUserId] = useState<string>('');
   const [subscriptions, setSubscriptions] = useState<string[]>();
   const [posts, setPosts] = useState<Post[]>();
   const [sortOption, setSortOption] = useState('Newest');
@@ -129,27 +132,27 @@ export default function HomeFeedScreen() {
     const subscribedGroupIds = subscriptionData?.map((obj) => obj.group_id);
     console.log(`groups subscribed to: ${JSON.stringify(subscribedGroupIds)}`);
     setSubscriptions(subscribedGroupIds);
-		getSubscribedGroupPosts(subscribedGroupIds);
+    getSubscribedGroupPosts(subscribedGroupIds);
   };
 
   const getSubscribedGroupPosts = async (subscriptions: any[] | undefined) => {
-		const { data: postData, error: postError } = await supabase
-			.from('posts')
-			.select()
-			.in('group_id', subscriptions!);
-		// .in('group_id', ["2fb73a1b-b798-433e-a31d-8cacafd1884c"])
-		if (postError) {
-			throw new Error('POST DATA ERROR - ' + postError.message);
-		}
+    const { data: postData, error: postError } = await supabase
+      .from('posts')
+      .select()
+      .in('group_id', subscriptions!);
+    // .in('group_id', ["2fb73a1b-b798-433e-a31d-8cacafd1884c"])
+    if (postError) {
+      throw new Error('POST DATA ERROR - ' + postError.message);
+    }
 
-		const postsWithLikes = await Promise.all(
-			postData.map(async (post) => {
-				const likeCount = await getLikeCount(post.post_id);
-				return { ...post, likes: likeCount };
-			})
-		);
+    const postsWithLikes = await Promise.all(
+      postData.map(async (post) => {
+        const likeCount = await getLikeCount(post.post_id);
+        return { ...post, likes: likeCount };
+      })
+    );
 
-		setPosts(postsWithLikes);
+    setPosts(postsWithLikes);
   };
   // Set the header options
   navigation.setOptions({
@@ -187,43 +190,46 @@ export default function HomeFeedScreen() {
   );
 
   useEffect(() => {
-		getUserSubscriptions();
+    getUserSubscriptions();
   }, [refreshCount]);
 
-		return(
-			<>
-				{ !posts ? <Box w="$full" h="$full" justifyContent='center' alignItems='center'><Spinner /></Box> : posts.length == 0 ?
-					<>
-						<View className={styles.container}>
-							<Text className={styles.title}>Your feed is empty!</Text>
-							<View className={styles.separator} />
-							<Text className={styles.subtext}>Subscribe to groups to see their posts here</Text>
-						</View>
-						<Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
-							<FabIcon as={RepeatIcon} />
-						</Fab> 
-					</> :
-					<>
-						<Center mt="$3" mb="$4">
-						<ScrollView showsVerticalScrollIndicator={false}>
-							{sortedPosts?.map((postData) => (
-								
-								<PostCard key={postData.post_id} postData={postData} updatePosts={getUserSubscriptions}/>
-								
-							))}
-						</ScrollView>
-					</Center>
-					<Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
-						<FabIcon as={RepeatIcon} />
-					</Fab>
-				</>
-			}
-		</>
-			
-		)
-	
-  
-    
+  return (
+    <>
+      {!posts ? (
+        <Box w="$full" h="$full" justifyContent="center" alignItems="center">
+          <Spinner />
+        </Box>
+      ) : posts.length == 0 ? (
+        <>
+          <View className={styles.container}>
+            <Text className={styles.title}>Your feed is empty!</Text>
+            <View className={styles.separator} />
+            <Text className={styles.subtext}>Subscribe to groups to see their posts here</Text>
+          </View>
+          <Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
+            <FabIcon as={RepeatIcon} />
+          </Fab>
+        </>
+      ) : (
+        <>
+          <Center mt="$3" mb="$4">
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {sortedPosts?.map((postData) => (
+                <PostCard
+                  key={postData.post_id}
+                  postData={postData}
+                  updatePosts={getUserSubscriptions}
+                />
+              ))}
+            </ScrollView>
+          </Center>
+          <Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
+            <FabIcon as={RepeatIcon} />
+          </Fab>
+        </>
+      )}
+    </>
+  );
 }
 
 const styles = {
