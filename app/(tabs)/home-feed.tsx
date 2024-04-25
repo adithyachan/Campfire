@@ -153,35 +153,47 @@ export default function HomeFeedScreen() {
     setLoading(false);
   }, [userId, refreshCount]);
 
-  if (loading) {
-    return <Spinner size="large" />;
-  }
-  if (posts?.length === 0) {
-    return (
-      <>
-        <View className={styles.container}>
-          <Text className={styles.title}>Your feed is empty!</Text>
-          <View className={styles.separator} />
-          <Text className={styles.subtext}>Subscribe to groups to see their posts here</Text>
-        </View>
-        <Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
-          <FabIcon as={RepeatIcon} />
-        </Fab>
-      </>
-    );
-  }
-  return (
-    <>
-      <Center mt="$3" mb="$4">
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {sortedPosts?.map((postData) => <PostCard key={postData.post_id} postData={postData} />)}
-        </ScrollView>
-      </Center>
-      <Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
-        <FabIcon as={RepeatIcon} />
-      </Fab>
-    </>
-  );
+	if (loading) {
+		return (
+			<Spinner size='large' />
+		)
+	}
+	if (posts?.length === 0) {
+		return(
+			
+			<>
+				<View className={styles.container}>
+					<Text className={styles.title}>Your feed is empty!</Text>
+					<View className={styles.separator} />
+					<Text className={styles.subtext}>Subscribe to groups to see their posts here</Text>
+				</View>
+				<Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
+					<FabIcon as={RepeatIcon} />
+				</Fab>
+			</>
+			
+		)
+	}
+	return(
+		<>	
+			<Center mt="$3" mb="$4">
+				<ScrollView showsVerticalScrollIndicator={false}>
+					{sortedPosts?.map((postData) => (
+						
+						<PostCard key={postData.post_id} postData={postData} updatePosts={getSubscribedGroupPosts}/>
+						
+					))}
+				</ScrollView>
+			</Center>
+			<Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
+				<FabIcon as={RepeatIcon} />
+			</Fab>
+		</>
+		
+	)
+	
+  
+    
 }
 
 const styles = {
