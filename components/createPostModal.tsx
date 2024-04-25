@@ -414,7 +414,7 @@ export default function CreatePostModal(props: {
                 </Box>
               </Box>
             </FormControl>
-            {selectedTags.length === 0 && imagePreview && (
+            {selectedTags.length === 0 && (imagePreview || isCollage) && (
               <Text color="red" mt="$2" textAlign="center">
                 Please tag at least one member to proceed with the post.
               </Text>
