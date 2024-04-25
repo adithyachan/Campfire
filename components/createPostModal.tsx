@@ -24,6 +24,17 @@ import {
   FormControlHelper,
   FormControlHelperText,
   FormControlLabelText,
+  Select,
+  SelectTrigger,
+  SelectInput,
+  SelectPortal,
+  SelectBackdrop,
+  SelectContent,
+  SelectDragIndicatorWrapper,
+  SelectDragIndicator,
+  SelectIcon,
+  ChevronDownIcon,
+  SelectItem,
 } from '@gluestack-ui/themed';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
@@ -70,6 +81,8 @@ export default function CreatePostModal(props: {
   const [groupMembers, setGroupMembers] = useState<Profile[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showLocation, setShowLocation] = useState(true);
+  const [partnerID, setPartnerID] = useState<string>();
+  const [partnerUsername, setPartnerUsername] = useState<string>();
 
   const routeParams = useLocalSearchParams();
 
@@ -200,6 +213,8 @@ export default function CreatePostModal(props: {
           is_public: isPublicPost,
           tags: selectedTags,
           show_location: showLocation,
+          partner_id: partnerID,
+          partner_username: partnerUsername
         })
         .select();
 
@@ -344,6 +359,31 @@ export default function CreatePostModal(props: {
               </Box>
             )}
             <FormControl mt="$5">
+              <FormControlLabel mb="$1">
+                <FormControlLabelText>Partner Poster</FormControlLabelText>
+              </FormControlLabel>
+              <Select mb="$3" onValueChange={(s) => { 
+                setPartnerID(s.split(", ")[0])
+                setPartnerUsername(s.split(", ")[1]) 
+              }}>
+                <SelectTrigger variant="outline" size="md">
+                  <SelectInput placeholder="Select partner poster" />
+                  <SelectIcon mr="$3">
+                    <Icon as={ChevronDownIcon} />
+                  </SelectIcon>
+                </SelectTrigger>
+                <SelectPortal>
+                  <SelectBackdrop />
+                  <SelectContent>
+                    <SelectDragIndicatorWrapper>
+                      <SelectDragIndicator />
+                    </SelectDragIndicatorWrapper>
+                    {groupMembers.map((member) => 
+                      <SelectItem label={`${member.first_name} ${member.last_name}`} value={`${member.user_id}, ${member.username}`} />
+                    )}
+                  </SelectContent>
+                </SelectPortal>
+              </Select>
               <FormControlLabel mb="$1">
                 <FormControlLabelText>Caption</FormControlLabelText>
               </FormControlLabel>

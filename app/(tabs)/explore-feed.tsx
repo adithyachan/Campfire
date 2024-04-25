@@ -29,6 +29,8 @@ type Post = {
   created_at: string;
   city: string;
   show_location: boolean;
+  partner_id: string;
+  partner_username: string;
 };
 
 export default function ExploreFeedScreen() {

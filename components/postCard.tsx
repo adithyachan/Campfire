@@ -63,6 +63,8 @@ export default function PostCard(props: {
     created_at: string;
     city: string;
     show_location: boolean;
+    partner_id: string;
+    partner_username: string;
   },
   updatePosts: () => void,
 }) {
@@ -320,7 +322,7 @@ export default function PostCard(props: {
                     <AvatarImage alt="avatar image" source={{ uri: posterData?.avatar_url }} />
                   </Avatar>
                   <VStack>
-                    <Heading size="sm">{posterData?.username}</Heading>
+                    <Heading size="sm">{`${posterData?.username}${postData.partner_username ? " + " + postData?.partner_username : ""}`}</Heading>
                     <Text size="sm">{posterGroupData}</Text>
                     {props.postData.show_location && <Text size="sm">{props.postData.city}</Text>}
                   </VStack>
