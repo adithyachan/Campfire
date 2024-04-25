@@ -27,13 +27,14 @@ import {
   AccordionTrigger,
   ChevronDownIcon,
   ChevronUpIcon,
+  TrashIcon,
   ScrollView,
   CloseIcon,
   Pressable,
   Menu,
   MenuItem,
   MenuItemLabel,
-  MenuIcon
+  MenuIcon,
 } from '@gluestack-ui/themed';
 import { useState, useEffect } from 'react';
 import { supabase } from '~/utils/supabase';
@@ -65,8 +66,8 @@ export default function PostCard(props: {
     show_location: boolean;
     partner_id: string;
     partner_username: string;
-  },
-  updatePosts: () => void,
+  };
+  updatePosts: () => void;
 }) {
   const [postData, setPostData] = useState(props.postData);
 
@@ -82,6 +83,8 @@ export default function PostCard(props: {
   const [likeData, setLikeData] = useState<string[]>();
   const [loadingLikeData, setLoadingLikeData] = useState(true);
 
+  const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+
   const [comments, setComments] =
     useState<
       { user_id: string; created_at: string; comment_text: string; username: string; id: string }[]
@@ -96,31 +99,32 @@ export default function PostCard(props: {
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
-  const menuButton =  
+  const menuButton = (
     <Menu
-    placement="bottom"
-    selectionMode="single"
-    closeOnSelect={true}
-    borderRadius={"$xl"}
-    mx={"$2"}
-
-    trigger={({ ...triggerProps }) => {
-      return (
-      <Button 
-      {...triggerProps}
-      variant="link" 
-      margin={10}
-      >
-      <ButtonIcon as={MenuIcon} />
-      </Button>
-      )
-    }}
-    >
-    <MenuItem textValue="Create a group" onPress={() => setShowUpdateModal(true)}>
-      <Icon as={EditIcon} size="sm" mr="$2" />
-      <MenuItemLabel size="sm">Edit</MenuItemLabel>
-    </MenuItem>
-  </Menu>
+      placement="bottom"
+      selectionMode="single"
+      closeOnSelect={true}
+      borderRadius={'$xl'}
+      mx={'$2'}
+      trigger={({ ...triggerProps }) => {
+        return (
+          <Button {...triggerProps} variant="link" margin={10}>
+            <ButtonIcon as={MenuIcon} />
+          </Button>
+        );
+      }}>
+      <MenuItem textValue="Create a group" onPress={() => setShowUpdateModal(true)}>
+        <Icon as={EditIcon} size="sm" mr="$2" />
+        <MenuItemLabel size="sm">Edit</MenuItemLabel>
+      </MenuItem>
+      {postData.user_id === userID && (
+        <MenuItem textValue="Delete post" onPress={() => setShowConfirmDeleteModal(true)}>
+          <Icon as={TrashIcon} size="sm" mr="$2" />
+          <MenuItemLabel size="sm">Delete</MenuItemLabel>
+        </MenuItem>
+      )}
+    </Menu>
+  );
 
   const getCurrentUser = async () => {
     const {
@@ -167,6 +171,18 @@ export default function PostCard(props: {
     console.log(groupData);
     setPosterGroupData(groupData.name);
     setLoadingGroupData(false);
+  };
+
+  const handleDeletePost = async () => {
+    const { error } = await supabase.from('posts').delete().match({ post_id: postData.post_id });
+
+    if (error) {
+      console.error('ERROR DELETING POST - ' + error.message);
+    } else {
+      props.updatePosts();
+      setShowConfirmDeleteModal(false);
+      alert('Post deleted successfully');
+    }
   };
 
   const getLikeData = async () => {
@@ -314,7 +330,7 @@ export default function PostCard(props: {
       ) : (
         <VStack>
           <HStack mx="$5" mb="$3">
-            <Box w="$full" flexDirection="row" justifyContent="space-between" alignItems='center'>
+            <Box w="$full" flexDirection="row" justifyContent="space-between" alignItems="center">
               <Pressable onPress={() => router.push(`/account/${postData.user_id}`)}>
                 <HStack space="md">
                   <Avatar>
@@ -322,7 +338,7 @@ export default function PostCard(props: {
                     <AvatarImage alt="avatar image" source={{ uri: posterData?.avatar_url }} />
                   </Avatar>
                   <VStack>
-                    <Heading size="sm">{`${posterData?.username}${postData.partner_username ? " + " + postData?.partner_username : ""}`}</Heading>
+                    <Heading size="sm">{`${posterData?.username}${postData.partner_username ? ' + ' + postData?.partner_username : ''}`}</Heading>
                     <Text size="sm">{posterGroupData}</Text>
                     {props.postData.show_location && <Text size="sm">{props.postData.city}</Text>}
                   </VStack>
@@ -346,7 +362,7 @@ export default function PostCard(props: {
                     {likeData ? likeData.length : 0}
                   </ButtonText>
                 </Button>
-                { postData.user_id == userID ? menuButton : null }
+                {postData.user_id == userID ? menuButton : null}
               </HStack>
             </Box>
           </HStack>
@@ -474,14 +490,19 @@ export default function PostCard(props: {
         onClose={() => setShowTaggedModal(false)}
         taggedUserIDs={taggedUserIDs}
       />
-      <UpdatePostModal 
+      <UpdatePostModal
         isOpen={showUpdateModal}
-        onClose={() => { 
-          setShowUpdateModal(false)
-          props.updatePosts()
+        onClose={() => {
+          setShowUpdateModal(false);
+          props.updatePosts();
         }}
         postData={props.postData}
         tagged_userIDs={taggedUserIDs}
+      />
+      <ConfirmDeleteModal
+        isOpen={showConfirmDeleteModal}
+        onClose={() => setShowConfirmDeleteModal(false)}
+        handleSubmit={handleDeletePost}
       />
     </Card>
   );
