@@ -131,53 +131,58 @@ export default function ExploreFeedScreen() {
     setGroupData(groupData as { group_id: string; name: string; bio: string }[]);
   };
 
-  if (!searchView) {
-    navigation.setOptions({
-      headerShown: true,
-    });
-    return (
-      <>
-        <Center mt="$3" mb="$4">
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {posts?.map((postData) => <PostCard key={postData.post_id} postData={postData} />)}
-          </ScrollView>
-        </Center>
-        <Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
-          <FabIcon as={RepeatIcon} />
-        </Fab>
-        <Fab placement="bottom left" onPress={() => setSearchView(true)}>
-          <FabIcon as={SearchIcon} />
-        </Fab>
-      </>
-    );
-  } else {
-    navigation.setOptions({
-      headerShown: false,
-    });
-    return (
-      <SafeAreaView style={styles.root}>
-        <SearchBar
-          clicked={clicked}
-          searchPhrase={searchPhrase}
-          setSearchPhrase={setSearchPhrase}
-          setClicked={setClicked}
-          activeButton={activeButton}
-          setActiveButton={setActiveButton}
-        />
-        <SearchList
-          searchPhrase={searchPhrase}
-          setClicked={setClicked}
-          userData={userData}
-          groupData={groupData}
-          activeButton={activeButton}
-          setActiveButton={setActiveButton}
-        />
-        <Fab placement="bottom left" onPress={() => setSearchView(false)}>
-          <FabIcon as={SearchIcon} />
-        </Fab>
-      </SafeAreaView>
-    );
-  }
+	if (! searchView) {
+		navigation.setOptions({
+			headerShown: true
+		  });
+		return (
+			<>
+				<Center mt="$3" mb="$4">
+					<ScrollView showsVerticalScrollIndicator={false}>
+						{posts?.map((postData) => (
+							
+							<PostCard key={postData.post_id} postData={postData} updatePosts={getPostsByGeo}/>
+							
+						))}
+					</ScrollView>
+				</Center>
+				<Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
+					<FabIcon as={RepeatIcon} />
+				</Fab>
+				<Fab placement="bottom left" onPress={() => setSearchView(true)}>
+					<FabIcon as={SearchIcon} />
+				</Fab>
+			</>
+		);
+	} else {
+		navigation.setOptions({
+			headerShown: false
+		  });
+		return (
+			<SafeAreaView style={styles.root}>
+				<SearchBar
+					clicked={clicked}
+					searchPhrase={searchPhrase}
+					setSearchPhrase={setSearchPhrase}
+					setClicked={setClicked}
+					activeButton={activeButton}
+					setActiveButton={setActiveButton}
+				/>
+				<SearchList
+					searchPhrase={searchPhrase}
+					setClicked={setClicked}
+					userData={userData}
+					groupData={groupData}
+					activeButton={activeButton}
+					setActiveButton={setActiveButton}
+				/>
+				<Fab placement="bottom left" onPress={() => setSearchView(false)}>
+					<FabIcon as={SearchIcon} />
+				</Fab>
+			</SafeAreaView>
+			
+		)
+	}
 }
 
 const styles = StyleSheet.create({
