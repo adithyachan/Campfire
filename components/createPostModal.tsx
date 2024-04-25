@@ -38,7 +38,7 @@ import { useLocalSearchParams } from 'expo-router';
 import CollageLayout from 'react-native-collage-layout';
 import ViewShot from 'react-native-view-shot';
 import * as Location from 'expo-location';
-import TagMembersModal from './tagMembersModal';
+import TagMembersModal from '../app/group/tagMembersModal';
 
 interface ImageObj {
   uri: string;
