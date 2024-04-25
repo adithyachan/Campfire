@@ -375,10 +375,17 @@ export default function PostCard(props: {
             />
           </Box>
           <Box flexDirection="row" justifyContent="space-between" mx="$3" mt="$2">
-            <HStack mt="$3" alignItems="center">
-              <Heading size="sm">{`${posterData?.username} ~ `}</Heading>
-              <Text size="sm">{props.postData.post_caption}</Text>
-            </HStack>
+            <VStack flexShrink={1}>
+              <HStack mt="$3" alignItems="center">
+                <Heading size="sm">{`${posterData?.username}`}</Heading>
+                {postData.partner_username && (
+                  <Heading size="sm">{` + ${postData.partner_username}`}</Heading>
+                )}
+              </HStack>
+              <Text size="sm" flexShrink={1}>
+                {props.postData.post_caption}
+              </Text>
+            </VStack>
             <HStack alignItems="center" space="sm">
               <Button
                 size="xs"
