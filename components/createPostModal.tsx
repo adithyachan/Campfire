@@ -414,7 +414,7 @@ export default function CreatePostModal(props: {
                 </Box>
               </Box>
             </FormControl>
-            {selectedTags.length === 0 && (imagePreview || isCollage) && (
+            {selectedTags.length === 0 && (imagePreview || images.length > 0) && (
               <Text color="red" mt="$2" textAlign="center">
                 Please tag at least one member to proceed with the post.
               </Text>
@@ -429,10 +429,13 @@ export default function CreatePostModal(props: {
               <ButtonIcon as={XIcon} />
               <ButtonText> Collage</ButtonText>
             </Button>
-            <Button onPress={() => setShowTagModal(true)} isDisabled={!imagePreview}>
+            <Button
+              onPress={() => setShowTagModal(true)}
+              isDisabled={!imagePreview && images.length === 0}>
               <ButtonIcon as={AtSignIcon} />
               <ButtonText> Tag</ButtonText>
             </Button>
+
             <Button
               variant="outline"
               bgColor="$red50"
