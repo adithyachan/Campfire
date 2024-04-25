@@ -478,7 +478,7 @@ const bioChangeModal = (
             </ModalCloseButton>
           </ModalHeader>
           <ModalBody>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView h="$80" showsVerticalScrollIndicator={false}>
               {notifications?.map((notificationData) => (
                 
                 <NotificationRecord key={notificationData.notification_id} notification={notificationData} setShowNotifModal={setShowNotifModal}/>
