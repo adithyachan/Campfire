@@ -14,9 +14,16 @@ expo-env.d.ts
 
 # firebase/supabase
 .env
+.env.local
 
-# macOS
+# misc
 .DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
 
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*

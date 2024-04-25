@@ -1,18 +1,17 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Link, Tabs } from "expo-router";
-
-import { Pressable, StyleSheet } from "react-native";
-
+import { Tabs } from "expo-router";
+import { StyleSheet } from "react-native";
+import React from "react";
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
 }) {
-  
   return <FontAwesome size={28} style={styles.tabBarIcon} {...props} />;
 }
 
-export default function TabLayout() {
+
+export default function TabLayout() {  
   
   return (
     <Tabs
@@ -49,30 +48,30 @@ export default function TabLayout() {
       /> */}
       <Tabs.Screen
         name="groups"
-        options={{
-          title: "Groups",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+        options= {{
+          title: "Groups", // Custom header title component
+          tabBarIcon: ({ color }) => <TabBarIcon name="group" color={color} />,
         }}
       />
       <Tabs.Screen
         name="home-feed"
         options={{
           title: "Home Feed",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="fire" color={color} />,
         }}
       />
       <Tabs.Screen
         name="explore-feed"
         options={{
-          title: "Explore Feed",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: "Explore",
+          tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
           title: "Account",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
 
