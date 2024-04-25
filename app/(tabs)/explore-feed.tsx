@@ -11,6 +11,11 @@ import {
   RepeatIcon,
   Center,
   SearchIcon,
+  Toast,
+  ToastDescription,
+  ToastTitle,
+  VStack,
+  useToast,
 } from '@gluestack-ui/themed';
 import SearchList from '~/components/searchview';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,6 +39,40 @@ type Post = {
 };
 
 export default function ExploreFeedScreen() {
+  const toast = useToast()
+  supabase
+    .channel('notifications')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, async (payload) => {
+      const insertedRow = payload.new
+      console.log(`new row inserted: ${JSON.stringify(insertedRow)}`)
+      const {data: {user}}  = await supabase.auth.getUser();
+      const {data: notificationData, error: notificationError} = await supabase
+        .from('profiles')
+        .select('notifications')
+        .eq('user_id', user?.id)
+        .single()
+      
+      if (notificationData?.notifications && user?.id === insertedRow.user_id)
+        toast.show({
+					duration: 7000,
+					placement: "top",
+					render: ({ id }) => {
+						const toastId = "toast-" + id
+						return (
+							<Toast nativeID={toastId} action="attention" variant="solid">
+								<VStack space="xs">
+									<ToastTitle>{insertedRow.title}</ToastTitle>
+									<ToastDescription>
+										{insertedRow.body}
+									</ToastDescription>
+								</VStack>
+							</Toast>
+						)
+					},
+				})
+      }
+    )
+    .subscribe()
   const navigation = useNavigation();
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState('');

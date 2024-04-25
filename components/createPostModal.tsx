@@ -214,7 +214,7 @@ export default function CreatePostModal(props: {
           tags: selectedTags,
           show_location: showLocation,
           partner_id: partnerID,
-          partner_username: partnerUsername
+          partner_username: partnerUsername,
         })
         .select();
 
@@ -327,6 +327,7 @@ export default function CreatePostModal(props: {
                 groupMembers={groupMembers}
                 initialSelectedMembers={selectedTags}
                 onTagsConfirmed={handleTagsConfirmed}
+                groupId={props.groupID}
               />
             )}
             {isCollage ? (
@@ -362,10 +363,12 @@ export default function CreatePostModal(props: {
               <FormControlLabel mb="$1">
                 <FormControlLabelText>Partner Poster</FormControlLabelText>
               </FormControlLabel>
-              <Select mb="$3" onValueChange={(s) => { 
-                setPartnerID(s.split(", ")[0])
-                setPartnerUsername(s.split(", ")[1]) 
-              }}>
+              <Select
+                mb="$3"
+                onValueChange={(s) => {
+                  setPartnerID(s.split(', ')[0]);
+                  setPartnerUsername(s.split(', ')[1]);
+                }}>
                 <SelectTrigger variant="outline" size="md">
                   <SelectInput placeholder="Select partner poster" />
                   <SelectIcon mr="$3">
@@ -378,9 +381,12 @@ export default function CreatePostModal(props: {
                     <SelectDragIndicatorWrapper>
                       <SelectDragIndicator />
                     </SelectDragIndicatorWrapper>
-                    {groupMembers.map((member) => 
-                      <SelectItem label={`${member.first_name} ${member.last_name}`} value={`${member.user_id}, ${member.username}`} />
-                    )}
+                    {groupMembers.map((member) => (
+                      <SelectItem
+                        label={`${member.first_name} ${member.last_name}`}
+                        value={`${member.user_id}, ${member.username}`}
+                      />
+                    ))}
                   </SelectContent>
                 </SelectPortal>
               </Select>
@@ -417,7 +423,7 @@ export default function CreatePostModal(props: {
           <ModalFooter flexDirection="row" justifyContent="space-around" mb={-5}>
             <Button onPress={handlePostUpload} isDisabled={selectedTags.length === 0}>
               <ButtonIcon as={UploadIcon} />
-              <ButtonText>Post</ButtonText>
+              <ButtonText> Post</ButtonText>
             </Button>
             <Button onPress={handleCollage}>
               <ButtonIcon as={XIcon} />

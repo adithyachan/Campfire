@@ -258,6 +258,28 @@ export default function GroupScreen() {
 
     getSubscribers();
 
+    const {data: profileData, error: profileError} = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('user_id', userId)
+      .single()
+
+    const {data: groupData, error: groupError} = await supabase
+      .from('groups')
+      .select('name')
+      .eq('group_id', groupID)
+      .single()
+
+    const username = profileData?.username
+    const groupname = groupData?.name
+
+    groupMembers.forEach(async (member_user_id) => {
+      const recipient_id = member_user_id.user_id
+      console.log(`sending notification to ${JSON.stringify(recipient_id)}`)
+      const { error } = await supabase
+        .from('notifications')
+        .insert({user_id: recipient_id, title: 'New Sub', body: `${username} just subscribed to ${groupname}`, event: 'NewSubscriber', redirect_to: userId})
+    })
     if (error) {
       console.log('SUBSCRIBE ERROR - ' + error.message);
     }

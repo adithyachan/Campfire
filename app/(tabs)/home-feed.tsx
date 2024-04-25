@@ -15,6 +15,11 @@ import {
   Icon,
   MenuItemLabel,
 	Box
+  Toast,
+  ToastDescription,
+  ToastTitle,
+  VStack,
+  useToast,
 } from '@gluestack-ui/themed';
 import { RepeatIcon, ArrowUpDownIcon, ArrowDown10 } from 'lucide-react-native';
 import { useNavigation } from 'expo-router';
@@ -32,6 +37,40 @@ type Post = {
 	partner_username: string;
 };
 export default function HomeFeedScreen() {
+  const toast = useToast()
+  supabase
+    .channel('notifications')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, async (payload) => {
+      const insertedRow = payload.new
+      console.log(`new row inserted: ${JSON.stringify(insertedRow)}`)
+      const {data: {user}}  = await supabase.auth.getUser();
+      const {data: notificationData, error: notificationError} = await supabase
+        .from('profiles')
+        .select('notifications')
+        .eq('user_id', user?.id)
+        .single()
+      
+      if (notificationData?.notifications && user?.id === insertedRow.user_id)
+        toast.show({
+					duration: 7000,
+					placement: "top",
+					render: ({ id }) => {
+						const toastId = "toast-" + id
+						return (
+							<Toast nativeID={toastId} action="attention" variant="solid">
+								<VStack space="xs">
+									<ToastTitle>{insertedRow.title}</ToastTitle>
+									<ToastDescription>
+										{insertedRow.body}
+									</ToastDescription>
+								</VStack>
+							</Toast>
+						)
+					},
+				})
+      }
+    )
+    .subscribe()
   const navigation = useNavigation();
   const [refreshCount, setRefreshCount] = useState(0);
   const [userId, setUserId] = useState<string>("");
