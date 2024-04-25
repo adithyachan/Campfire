@@ -30,6 +30,10 @@ import {
   ScrollView,
   CloseIcon,
   Pressable,
+  Menu,
+  MenuItem,
+  MenuItemLabel,
+  MenuIcon
 } from '@gluestack-ui/themed';
 import { useState, useEffect } from 'react';
 import { supabase } from '~/utils/supabase';
@@ -37,6 +41,8 @@ import CommentModal from './commentModal';
 import ConfirmDeleteModal from './confirmDeleteModal';
 import { router } from 'expo-router';
 import ShowTaggedModal from './showTaggedModal';
+import UpdatePostModal from './updatePostModal';
+import { ArrowDown10, ArrowUpDownIcon, DotIcon, EditIcon } from 'lucide-react-native';
 
 const myDateParse = (s: string) => {
   let b = s.split(/\D/);
@@ -56,9 +62,10 @@ export default function PostCard(props: {
     post_caption: string;
     created_at: string;
     city: string;
-  };
+  },
+  updatePosts: () => void,
 }) {
-  const postData = props.postData;
+  const [postData, setPostData] = useState(props.postData);
 
   const [userID, setUserID] = useState<string>();
   const [loadingUserID, setLoadingUserID] = useState(true);
@@ -83,6 +90,34 @@ export default function PostCard(props: {
 
   const [showTaggedModal, setShowTaggedModal] = useState(false);
   const [taggedUserIDs, setTaggedUserIDs] = useState([]);
+
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+
+  const menuButton =  
+    <Menu
+    placement="bottom"
+    selectionMode="single"
+    closeOnSelect={true}
+    borderRadius={"$xl"}
+    mx={"$2"}
+
+    trigger={({ ...triggerProps }) => {
+      return (
+      <Button 
+      {...triggerProps}
+      variant="link" 
+      margin={10}
+      >
+      <ButtonIcon as={MenuIcon} />
+      </Button>
+      )
+    }}
+    >
+    <MenuItem textValue="Create a group" onPress={() => setShowUpdateModal(true)}>
+      <Icon as={EditIcon} size="sm" mr="$2" />
+      <MenuItemLabel size="sm">Edit</MenuItemLabel>
+    </MenuItem>
+  </Menu>
 
   const getCurrentUser = async () => {
     const {
@@ -276,8 +311,8 @@ export default function PostCard(props: {
       ) : (
         <VStack>
           <HStack mx="$5" mb="$3">
-            <Box w="$full" flexDirection="row" justifyContent="space-between">
-              <Pressable onPress={() => router.push(`/account/${userID}`)}>
+            <Box w="$full" flexDirection="row" justifyContent="space-between" alignItems='center'>
+              <Pressable onPress={() => router.push(`/account/${postData.user_id}`)}>
                 <HStack space="md">
                   <Avatar>
                     <AvatarFallbackText>{posterData?.username}</AvatarFallbackText>
@@ -289,23 +324,26 @@ export default function PostCard(props: {
                   </VStack>
                 </HStack>
               </Pressable>
-              <Button
-                variant={`solid`}
-                borderColor={userID && likeData && likeData.includes(userID) ? `$yellow500` : ''}
-                bgColor={userID && likeData && likeData.includes(userID) ? `$yellow200` : `white`}
-                borderRadius="$full"
-                onPress={async () => {
-                  if (likeData!.includes(userID!)) {
-                    await unlikePost();
-                  } else {
-                    await likePost();
-                  }
-                }}>
-                <ButtonIcon size="xl" color="$yellow500" as={StarIcon} />
-                <ButtonText ml="$1" color="$yellow500">
-                  {likeData ? likeData.length : 0}
-                </ButtonText>
-              </Button>
+              <HStack alignItems="center">
+                <Button
+                  variant={`solid`}
+                  borderColor={userID && likeData && likeData.includes(userID) ? `$yellow500` : ''}
+                  bgColor={userID && likeData && likeData.includes(userID) ? `$yellow200` : `white`}
+                  borderRadius="$full"
+                  onPress={async () => {
+                    if (likeData!.includes(userID!)) {
+                      await unlikePost();
+                    } else {
+                      await likePost();
+                    }
+                  }}>
+                  <ButtonIcon size="xl" color="$yellow500" as={StarIcon} />
+                  <ButtonText ml="$1" color="$yellow500">
+                    {likeData ? likeData.length : 0}
+                  </ButtonText>
+                </Button>
+                { postData.user_id == userID ? menuButton : null }
+              </HStack>
             </Box>
           </HStack>
           <Box w="$full" justifyContent="center" alignItems="center">
@@ -431,6 +469,15 @@ export default function PostCard(props: {
         isOpen={showTaggedModal}
         onClose={() => setShowTaggedModal(false)}
         taggedUserIDs={taggedUserIDs}
+      />
+      <UpdatePostModal 
+        isOpen={showUpdateModal}
+        onClose={() => { 
+          setShowUpdateModal(false)
+          props.updatePosts()
+        }}
+        postData={props.postData}
+        tagged_userIDs={taggedUserIDs}
       />
     </Card>
   );

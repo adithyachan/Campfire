@@ -2,6 +2,9 @@ import '../global.css';
 import { Stack } from "expo-router";
 import { GluestackUIProvider } from "@gluestack-ui/themed"
 import { config } from "@gluestack-ui/config"
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();
 
 export const unstable_settings = {
 	// Ensure that reloading on `/modal` keeps a back button present.

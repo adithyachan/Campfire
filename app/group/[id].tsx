@@ -22,7 +22,7 @@ import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { supabase } from '~/utils/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import CreatePostModal from './createPostModal';
+import CreatePostModal from '../../components/createPostModal';
 import PostCard from '~/components/postCard';
 import ShareGroupModal from './shareGroupModal';
 import ShowMembersModal from './showMembersModal';
@@ -596,7 +596,7 @@ export default function GroupScreen() {
   const GroupPostCards = () => {
     return (
       <Box>
-        {groupPosts ? groupPosts.map((post) => <PostCard postData={post} key={post.id} />) : null}
+        {groupPosts ? groupPosts.map((post) => <PostCard postData={post} key={post.id} updatePosts={getPosts} />) : null}
       </Box>
     );
   };

@@ -166,7 +166,7 @@ export default function HomeFeedScreen() {
 				<ScrollView showsVerticalScrollIndicator={false}>
 					{sortedPosts?.map((postData) => (
 						
-						<PostCard key={postData.post_id} postData={postData} />
+						<PostCard key={postData.post_id} postData={postData} updatePosts={getSubscribedGroupPosts}/>
 						
 					))}
 				</ScrollView>

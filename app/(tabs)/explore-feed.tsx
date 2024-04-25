@@ -110,7 +110,7 @@ export default function ExploreFeedScreen() {
 					<ScrollView showsVerticalScrollIndicator={false}>
 						{posts?.map((postData) => (
 							
-							<PostCard key={postData.post_id} postData={postData} />
+							<PostCard key={postData.post_id} postData={postData} updatePosts={getPostsByGeo}/>
 							
 						))}
 					</ScrollView>
