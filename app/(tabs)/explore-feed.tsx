@@ -217,6 +217,9 @@ export default function ExploreFeedScreen() {
 					activeButton={activeButton}
 					setActiveButton={setActiveButton}
 				/>
+        <Fab placement="bottom right" onPress={() => setRefreshCount(refreshCount + 1)}>
+					<FabIcon as={RepeatIcon} />
+				</Fab>
 				<Fab placement="bottom left" onPress={() => setSearchView(false)}>
 					<FabIcon as={SearchIcon} />
 				</Fab>
