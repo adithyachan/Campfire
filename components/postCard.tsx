@@ -331,7 +331,12 @@ export default function PostCard(props: {
         <VStack>
           <HStack mx="$5" mb="$3">
             <Box w="$full" flexDirection="row" justifyContent="space-between" alignItems="center">
-              <Pressable onPress={() => router.push(`/account/${postData.user_id}`)}>
+              <Pressable onPress={() => { 
+                if (postData.user_id != userID)
+                  router.push(`/account/${postData.user_id}`)
+                else
+                  router.push("/(tabs)/account")
+              }}>
                 <HStack space="md">
                   <Avatar>
                     <AvatarFallbackText>{posterData?.username}</AvatarFallbackText>
